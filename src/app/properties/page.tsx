@@ -374,7 +374,7 @@ function PropertiesContent() {
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
                 <p className="text-gray-600 mb-4">{error}</p>
-                <Button onClick={fetchProperties} variant="outline">
+                <Button onClick={() => fetchProperties()} variant="outline">
                   Réessayer
                 </Button>
               </div>
