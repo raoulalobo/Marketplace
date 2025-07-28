@@ -1,0 +1,53 @@
+
+> marketplace-immobilier-cameroun@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.5
+  - Local:        http://localhost:3000
+  - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Ready in 3s
+ ○ Compiling /api/dashboard/agent-stats ...
+ ✓ Compiled /api/dashboard/agent-stats in 1119ms (294 modules)
+ GET /api/dashboard/agent-stats 401 in 1324ms
+ ✓ Compiled /api/dashboard/agent-visit-requests in 231ms (296 modules)
+ GET /api/dashboard/agent-visit-requests 401 in 301ms
+ ✓ Compiled /api/properties in 450ms (304 modules)
+prisma:query BEGIN
+prisma:query UPDATE "public"."properties" SET "isFeatured" = $1, "featuredUntil" = $2, "updatedAt" = $3 WHERE ("public"."properties"."isFeatured" = $4 AND "public"."properties"."featuredUntil" < $5)
+prisma:query COMMIT
+prisma:query SELECT "public"."properties"."id", "public"."properties"."titre", "public"."properties"."description", "public"."properties"."type"::text, "public"."properties"."prix", "public"."properties"."superficie", "public"."properties"."adresse", "public"."properties"."fraisVisite", "public"."properties"."isActive", "public"."properties"."isFeatured", "public"."properties"."featuredUntil", "public"."properties"."viewsCount", "public"."properties"."createdAt", "public"."properties"."updatedAt", "public"."properties"."agentId", COALESCE("aggr_selection_0_Favorite"."_aggr_count_favorites", 0) AS "_aggr_count_favorites", COALESCE("aggr_selection_1_VisitRequest"."_aggr_count_visitRequests", 0) AS "_aggr_count_visitRequests" FROM "public"."properties" LEFT JOIN (SELECT "public"."favorites"."propertyId", COUNT(*) AS "_aggr_count_favorites" FROM "public"."favorites" WHERE 1=1 GROUP BY "public"."favorites"."propertyId") AS "aggr_selection_0_Favorite" ON ("public"."properties"."id" = "aggr_selection_0_Favorite"."propertyId") LEFT JOIN (SELECT "public"."visit_requests"."propertyId", COUNT(*) AS "_aggr_count_visitRequests" FROM "public"."visit_requests" WHERE 1=1 GROUP BY "public"."visit_requests"."propertyId") AS "aggr_selection_1_VisitRequest" ON ("public"."properties"."id" = "aggr_selection_1_VisitRequest"."propertyId") WHERE "public"."properties"."isActive" = $1 ORDER BY "public"."properties"."createdAt" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."users"."id", "public"."users"."nom", "public"."users"."prenom", "public"."users"."email", "public"."users"."telephone" FROM "public"."users" WHERE "public"."users"."id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."property_medias"."id", "public"."property_medias"."url", "public"."property_medias"."type"::text, "public"."property_medias"."order", "public"."property_medias"."createdAt", "public"."property_medias"."propertyId" FROM "public"."property_medias" WHERE "public"."property_medias"."propertyId" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ORDER BY "public"."property_medias"."order" ASC OFFSET $13
+prisma:query SELECT COUNT(*) AS "_count._all" FROM (SELECT "public"."properties"."id" FROM "public"."properties" WHERE "public"."properties"."isActive" = $1 OFFSET $2) AS "sub"
+ GET /api/properties 200 in 6049ms
+ ✓ Compiled /api/properties/[id] in 105ms (306 modules)
+prisma:query SELECT "public"."properties"."id", "public"."properties"."titre", "public"."properties"."description", "public"."properties"."type"::text, "public"."properties"."prix", "public"."properties"."superficie", "public"."properties"."adresse", "public"."properties"."fraisVisite", "public"."properties"."isActive", "public"."properties"."isFeatured", "public"."properties"."featuredUntil", "public"."properties"."viewsCount", "public"."properties"."createdAt", "public"."properties"."updatedAt", "public"."properties"."agentId", COALESCE("aggr_selection_0_Favorite"."_aggr_count_favorites", 0) AS "_aggr_count_favorites", COALESCE("aggr_selection_1_VisitRequest"."_aggr_count_visitRequests", 0) AS "_aggr_count_visitRequests", COALESCE("aggr_selection_2_Report"."_aggr_count_reports", 0) AS "_aggr_count_reports" FROM "public"."properties" LEFT JOIN (SELECT "public"."favorites"."propertyId", COUNT(*) AS "_aggr_count_favorites" FROM "public"."favorites" WHERE 1=1 GROUP BY "public"."favorites"."propertyId") AS "aggr_selection_0_Favorite" ON ("public"."properties"."id" = "aggr_selection_0_Favorite"."propertyId") LEFT JOIN (SELECT "public"."visit_requests"."propertyId", COUNT(*) AS "_aggr_count_visitRequests" FROM "public"."visit_requests" WHERE 1=1 GROUP BY "public"."visit_requests"."propertyId") AS "aggr_selection_1_VisitRequest" ON ("public"."properties"."id" = "aggr_selection_1_VisitRequest"."propertyId") LEFT JOIN (SELECT "public"."reports"."propertyId", COUNT(*) AS "_aggr_count_reports" FROM "public"."reports" WHERE 1=1 GROUP BY "public"."reports"."propertyId") AS "aggr_selection_2_Report" ON ("public"."properties"."id" = "aggr_selection_2_Report"."propertyId") WHERE ("public"."properties"."id" = $1 AND "public"."properties"."isActive" = $2) LIMIT $3 OFFSET $4
+prisma:query SELECT "public"."users"."id", "public"."users"."nom", "public"."users"."prenom", "public"."users"."email", "public"."users"."telephone" FROM "public"."users" WHERE "public"."users"."id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."property_medias"."id", "public"."property_medias"."url", "public"."property_medias"."type"::text, "public"."property_medias"."order", "public"."property_medias"."createdAt", "public"."property_medias"."propertyId" FROM "public"."property_medias" WHERE "public"."property_medias"."propertyId" IN ($1) ORDER BY "public"."property_medias"."order" ASC OFFSET $2
+ GET /api/properties/cmdmhgdpb0001dcu9o68jyrpw 200 in 1788ms
+ ✓ Compiled /api/visit-requests/[id] in 151ms (306 modules)
+ GET /api/visit-requests/test-id-123 401 in 584ms
+ ✓ Compiled /api/properties/[id]/visit-request in 124ms (308 modules)
+ POST /api/properties/cmdmhgdpb0001dcu9o68jyrpw/visit-request 401 in 553ms
+ ✓ Compiled /api/visit-requests/[id]/respond in 306ms (304 modules)
+ POST /api/visit-requests/test-id/respond 401 in 837ms
+ POST /api/visit-requests/test-id/respond 401 in 29ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 4.3s (980 modules)
+ ✓ Compiled in 732ms (358 modules)
+prisma:query UPDATE "public"."users" SET "lastLoginAt" = $1, "updatedAt" = $2 WHERE ("public"."users"."id" = $3 AND 1=1) RETURNING "public"."users"."id", "public"."users"."email", "public"."users"."password", "public"."users"."nom", "public"."users"."prenom", "public"."users"."telephone", "public"."users"."role"::text, "public"."users"."isActive", "public"."users"."emailVerified", "public"."users"."lastLoginAt", "public"."users"."createdAt", "public"."users"."updatedAt"
+ GET /dashboard 200 in 6955ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 804ms (969 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 952ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1615ms (897 modules)
+ GET / 200 in 1965ms
+ ⚠ The "images.domains" configuration is deprecated. Please use "images.remotePatterns" configuration instead.
+ ✓ Compiled /_not-found in 278ms (900 modules)
+ GET /_next/static/css/app/layout.css?v=1753717455153 404 in 435ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 444ms
+ GET /_next/static/chunks/main-app.js?v=1753717455153 404 in 447ms
+ GET /_next/static/chunks/app/layout.js 404 in 425ms

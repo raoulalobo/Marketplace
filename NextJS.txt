@@ -1,0 +1,75 @@
+IMPORTANT : 
+
+Tu es un expert NextJS mobile Friendly
+
+A partir de ce document créer le cahier de charge qui sera le fil conducteur de notre travail
+
+Marketplace camerounaise  pour des agents immobiliers qui pourraient y poster des propriétés ( maisons, terrains, bureaux, hangars , etc... ) et des acheteurs ayant besoins de bien immobiliers fiables .    
+
+1-Les agents immobiliers ( compte requis ):    
+
+-Peuvent ajouter des biens immobiliers   
+
+-Peuvent modifier uniquement les biens immobiliers qu'ils ont ajoute 
+
+-Peuvent répondre aux demandes de visite  
+
+-Ont un espace personnel :  
+
+--Peuvent voir les biens immobiliers qu'ils ont ajoute et avoir des statistiques relativement a ces derniers 
+
+--Peuvent voir les demande de visites des biens qu'ils ont publie 
+
+--Peuvent voir les signalements d'abus des bien qu'ils ont publie   
+
+2-Les acheteurs ( compte requis ):   
+
+-Peuvent voir la liste des bien immobiliers   
+
+-Peuvent voir les détails d'un bien immobilier   
+
+-Peuvent demander a visiter un bien immobilier   
+
+-Peuvent signaler des abus, ou autre élément relatifs a un bien immobilier    
+
+-N'ont pas acces aux données perso ( mail, téléphone ) des agents immobiliers  
+
+-Ont un espace personnel :  
+
+--Peuvent voir les biens immobiliers qu'ils ont ajoute comme leur favoris 
+
+--Peuvent voir les demande de visites qu'ils ont publie 
+
+--Peuvent voir les signalements d'abus qu'ils ont publie   
+
+3-Les utilisateurs sans compte :   
+
+-Peuvent voir la liste des bien immobiliers   
+
+-Peuvent voir les détails d'un bien immobilier mais ne peuvent effectuer aucune action ( Message de notification leur informant de se connecter pour avoir acces aux actions )   
+
+4-Les administrateurs ( compte requis ):    
+
+-Ont acces a tout et peuvent effectuer toutes les actions  
+
+5-Bien immobiliers : 
+
+-Titre, description, type, prix ( Francs CFA ), superficie, adresse ( Pas de Map ) , photos( 5 maximum, AWS ou équivalent ) , vidéos ( 5 maximum,AWS ou équivalent ), Frais de visites ( Francs CFA )  
+
+6-Technologies utilisees : 
+
+NextJS
+
+7-Notes : 
+
+-Pas de chat interne ( A developper plus tard )
+
+-Les menus doivent correspondre aux acces,  
+
+--Exemple : un utilisateur non connecte ne peut pas avoir un un menu 'Tableau de bord' ( Dashboard ) 
+
+-Lors d'un enregistrement réussi l'utilisateur est redirige la page Login 
+
+-Lors d'une connexion réussie l'utilisateur est redirige vers son DashBoard, apparition des menus le concernant, des éléments visibles qui indiquent qu'il est connecte ( nom et rôle dans le Navbar ) 
+
+-Lors de la déconnexion d'un utilisateur, disparition des menus propres a l'utilisateur ainsi que des éléments visibles de connexion, redirection vers la HomePage
