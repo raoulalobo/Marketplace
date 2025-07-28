@@ -132,18 +132,44 @@ function PropertiesContent() {
   const [selectedType, setSelectedType] = useState('TOUS');
   const [priceRange, setPriceRange] = useState('TOUS');
   const [properties, setProperties] = useState<Property[]>([]);
-  const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalProperties, setTotalProperties] = useState(0);
+  const propertiesPerPage = 12;
 
-  // Fonction pour récupérer les propriétés depuis l'API
-  const fetchProperties = async () => {
+  // Fonction pour récupérer les propriétés depuis l'API avec filtres et pagination
+  const fetchProperties = async (
+    page: number = currentPage,
+    searchQuery: string = searchTerm,
+    ville: string = selectedVille,
+    type: string = selectedType,
+    prix: string = priceRange
+  ) => {
     try {
       setLoading(true);
       setError('');
       
-      const response = await fetch('/api/properties');
+      // Construire les paramètres de requête
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: propertiesPerPage.toString()
+      });
+      
+      if (searchQuery) params.append('search', searchQuery);
+      if (ville && ville !== 'Toutes les villes') params.append('ville', ville);
+      if (type && type !== 'TOUS') params.append('type', type);
+      
+      // Gérer les filtres de prix
+      if (prix && prix !== 'TOUS') {
+        const [min, max] = prix.split('-').map(Number);
+        if (min) params.append('prixMin', min.toString());
+        if (max) params.append('prixMax', max.toString());
+      }
+      
+      const response = await fetch(`/api/properties?${params.toString()}`);
       
       if (!response.ok) {
         throw new Error('Erreur lors du chargement des propriétés');
@@ -151,11 +177,16 @@ function PropertiesContent() {
       
       const data = await response.json();
       setProperties(data.properties || []);
+      setTotalPages(data.pagination?.totalPages || 1);
+      setTotalProperties(data.pagination?.total || 0);
+      setCurrentPage(data.pagination?.page || 1);
       
     } catch (err) {
       console.error('Erreur API:', err);
       setError('Impossible de charger les propriétés');
       setProperties([]);
+      setTotalPages(1);
+      setTotalProperties(0);
     } finally {
       setLoading(false);
     }
@@ -174,45 +205,36 @@ function PropertiesContent() {
     setSelectedVille(ville);
   }, [searchParams]);
 
-  // Filtrer les propriétés
+  // Recharger les propriétés quand les filtres changent (retour à la page 1)
   useEffect(() => {
-    let filtered = properties;
-
-    // Filtrer par terme de recherche
-    if (searchTerm) {
-      filtered = filtered.filter(prop => 
-        prop.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        prop.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        prop.adresse.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    if (currentPage === 1) {
+      fetchProperties(1, searchTerm, selectedVille, selectedType, priceRange);
+    } else {
+      setCurrentPage(1);
     }
+  }, [searchTerm, selectedVille, selectedType, priceRange]);
 
-    // Filtrer par ville (extraire de l'adresse)
-    if (selectedVille && selectedVille !== 'Toutes les villes') {
-      filtered = filtered.filter(prop => 
-        prop.adresse.toLowerCase().includes(selectedVille.toLowerCase())
-      );
+  // Recharger les propriétés quand la page change
+  useEffect(() => {
+    fetchProperties(currentPage, searchTerm, selectedVille, selectedType, priceRange);
+  }, [currentPage]);
+
+  // Fonctions de pagination
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      // Scroll vers le haut de la liste
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  };
 
-    // Filtrer par type
-    if (selectedType && selectedType !== 'TOUS') {
-      filtered = filtered.filter(prop => prop.type === selectedType);
-    }
+  const handlePreviousPage = () => {
+    handlePageChange(currentPage - 1);
+  };
 
-    // Filtrer par prix
-    if (priceRange && priceRange !== 'TOUS') {
-      const [min, max] = priceRange.split('-').map(Number);
-      filtered = filtered.filter(prop => {
-        if (max) {
-          return prop.prix >= min && prop.prix <= max;
-        } else {
-          return prop.prix >= min;
-        }
-      });
-    }
-
-    setFilteredProperties(filtered);
-  }, [properties, searchTerm, selectedVille, selectedType, priceRange]);
+  const handleNextPage = () => {
+    handlePageChange(currentPage + 1);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -222,7 +244,15 @@ function PropertiesContent() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Propriétés disponibles</h1>
-              <p className="text-gray-600">Découvrez nos {filteredProperties.length} biens immobiliers</p>
+              <p className="text-gray-600">
+                {loading ? 'Chargement...' : (
+                  totalProperties > 0 ? (
+                    `${totalProperties} biens immobiliers trouvés - Page ${currentPage} sur ${totalPages}`
+                  ) : (
+                    'Aucune propriété trouvée'
+                  )
+                )}
+              </p>
             </div>
             <Button
               variant="outline"
@@ -314,6 +344,7 @@ function PropertiesContent() {
                   setSelectedVille('');
                   setSelectedType('TOUS');
                   setPriceRange('TOUS');
+                  setCurrentPage(1);
                 }}
               >
                 Réinitialiser les filtres
@@ -347,25 +378,85 @@ function PropertiesContent() {
                   Réessayer
                 </Button>
               </div>
-            ) : filteredProperties.length === 0 ? (
+            ) : properties.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-gray-400 mb-4">
                   <Search className="w-16 h-16 mx-auto" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Aucune propriété trouvée</h3>
                 <p className="text-gray-600">
-                  {properties.length === 0 
+                  {totalProperties === 0 
                     ? "Aucune propriété disponible pour le moment" 
                     : "Essayez de modifier vos critères de recherche"
                   }
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProperties.map(property => (
-                  <PropertyCard key={property.id} property={property} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {properties.map(property => (
+                    <PropertyCard key={property.id} property={property} />
+                  ))}
+                </div>
+
+                {/* Composant de pagination */}
+                {totalPages > 1 && (
+                  <div className="mt-12 flex flex-col items-center gap-4">
+                    <div className="text-sm text-gray-600">
+                      Affichage de {((currentPage - 1) * propertiesPerPage) + 1} à {Math.min(currentPage * propertiesPerPage, totalProperties)} sur {totalProperties} propriétés
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      {/* Bouton Précédent */}
+                      <Button
+                        variant="outline"
+                        onClick={handlePreviousPage}
+                        disabled={currentPage === 1}
+                        className="px-3 py-2"
+                      >
+                        ← Précédent
+                      </Button>
+
+                      {/* Numéros de pages */}
+                      <div className="flex gap-1">
+                        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                          let pageNumber;
+                          if (totalPages <= 5) {
+                            pageNumber = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNumber = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNumber = totalPages - 4 + i;
+                          } else {
+                            pageNumber = currentPage - 2 + i;
+                          }
+
+                          return (
+                            <Button
+                              key={pageNumber}
+                              variant={currentPage === pageNumber ? "default" : "outline"}
+                              onClick={() => handlePageChange(pageNumber)}
+                              className="px-3 py-2 min-w-[40px]"
+                            >
+                              {pageNumber}
+                            </Button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Bouton Suivant */}
+                      <Button
+                        variant="outline"
+                        onClick={handleNextPage}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-2"
+                      >
+                        Suivant →
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
