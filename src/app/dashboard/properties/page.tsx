@@ -9,10 +9,17 @@ import { PropertyImage } from '@/components/ui/property-image';
 import { 
   Search, Filter, Plus, Eye, Edit, ToggleLeft, ToggleRight, 
   BarChart3, MapPin, Calendar, TrendingUp, Users, MessageSquare,
-  Home, Briefcase, Grid, ArrowUpDown, ChevronLeft, ChevronRight
+  Home, Briefcase, Grid, ArrowUpDown, ChevronLeft, ChevronRight,
+  Clock, Activity, Target
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { SessionsMetric, TimeMetric, ScrollMetric, BounceMetric } from '@/components/dashboard/metric-card';
+import dynamic from 'next/dynamic';
+
+const ClientMetricsHelpSection = dynamic(() => import('@/components/dashboard/client-metrics-help-section'), {
+  ssr: false,
+});
 
 // Interfaces pour les données
 interface PropertyStats {
@@ -309,177 +316,119 @@ export default function AgentPropertiesPage() {
         </div>
       ) : (
         <>
-          {/* Tableau responsive */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Propriété
-                    </th>
-                    <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort('prix')}
-                    >
-                      <div className="flex items-center gap-1">
-                        Prix
-                        <ArrowUpDown className="w-3 h-3" />
-                      </div>
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Statut
-                    </th>
-                    <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort('viewsCount')}
-                    >
-                      <div className="flex items-center gap-1">
-                        Performance
-                        <ArrowUpDown className="w-3 h-3" />
-                      </div>
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Engagement
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {properties.map((property) => {
-                    const TypeIcon = typeIcons[property.type];
-                    const firstImage = property.medias.find(m => m.type === 'PHOTO');
-                    
-                    return (
-                      <tr key={property.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-16 w-16">
-                              {firstImage ? (
-                                <PropertyImage
-                                  src={firstImage.url}
-                                  alt={property.titre}
-                                  width={64}
-                                  height={64}
-                                  className="h-16 w-16 rounded-lg object-cover"
-                                  fallbackUrl=""
-                                />
-                              ) : (
-                                <div className="h-16 w-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                                  <TypeIcon className="w-6 h-6 text-gray-400" />
-                                </div>
-                              )}
+          {/* Section d'aide pour interpréter les métriques */}
+          <ClientMetricsHelpSection />
+
+          {/* Vue en cartes des propriétés */}
+          <div className="space-y-6">
+            {properties.map((property) => {
+              const TypeIcon = typeIcons[property.type];
+              const firstImage = property.medias.find(m => m.type === 'PHOTO');
+              
+              return (
+                <div key={property.id} className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+                  {/* En-tête de la propriété */}
+                  <div className="p-6 border-b border-gray-200">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="flex-shrink-0">
+                          {firstImage ? (
+                            <PropertyImage
+                              src={firstImage.url}
+                              alt={property.titre}
+                              width={80}
+                              height={80}
+                              className="h-20 w-20 rounded-lg object-cover"
+                              fallbackUrl=""
+                            />
+                          ) : (
+                            <div className="h-20 w-20 bg-gray-200 rounded-lg flex items-center justify-center">
+                              <TypeIcon className="w-8 h-8 text-gray-400" />
                             </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900 max-w-xs truncate">
-                                {property.titre}
-                              </div>
-                              <div className="text-sm text-gray-500 flex items-center gap-2">
-                                <Badge variant="secondary">{typeLabels[property.type]}</Badge>
-                                <span>{property.superficie} m²</span>
-                              </div>
-                              <div className="text-xs text-gray-400 max-w-xs truncate">
-                                {property.adresse}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {formatPrice(property.prix)}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {formatPrice(Math.round(property.prix / property.superficie))}/m²
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-lg font-semibold text-gray-900 max-w-md truncate">
+                              {property.titre}
+                            </h3>
                             {property.isActive ? (
-                              <Badge className="bg-green-100 text-green-800">
-                                Active
-                              </Badge>
+                              <Badge className="bg-green-100 text-green-800">Active</Badge>
                             ) : (
-                              <Badge variant="secondary">
-                                Inactive
-                              </Badge>
+                              <Badge variant="secondary">Inactive</Badge>
                             )}
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <Eye className="w-4 h-4 text-blue-600" />
-                              <span>{property.stats.viewsCount} vues</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <MessageSquare className="w-4 h-4 text-green-600" />
-                              <span>{property.stats.visitRequestsCount} demandes</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Users className="w-4 h-4 text-purple-600" />
-                              <span>{property.stats.totalSessions} sessions</span>
-                            </div>
+                          <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+                            <Badge variant="secondary">{typeLabels[property.type]}</Badge>
+                            <span>{property.superficie} m²</span>
+                            <span className="font-medium text-gray-900">{formatPrice(property.prix)}</span>
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          <div className="space-y-1">
-                            <div>
-                              <span className="text-xs text-gray-500">Temps moyen:</span>
-                              <div className="font-medium">
-                                {formatTime(property.stats.averageTimeSpent)}
-                              </div>
-                            </div>
-                            <div>
-                              <span className="text-xs text-gray-500">Taux rebond:</span>
-                              <div className={`font-medium ${
-                                property.stats.bounceRate > 70 ? 'text-red-600' :
-                                property.stats.bounceRate > 40 ? 'text-orange-600' : 'text-green-600'
-                              }`}>
-                                {property.stats.bounceRate}%
-                              </div>
-                            </div>
+                          <div className="text-sm text-gray-500 max-w-md truncate">
+                            <MapPin className="w-4 h-4 inline mr-1" />
+                            {property.adresse}
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex items-center gap-2 justify-end">
-                            <Button
-                              asChild
-                              size="sm"
-                              variant="outline"
-                              className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                            >
-                              <Link href={`/dashboard/properties/${property.id}`}>
-                                <BarChart3 className="w-4 h-4" />
-                              </Link>
-                            </Button>
-                            <Button
-                              asChild
-                              size="sm"
-                              variant="outline"
-                            >
-                              <Link href={`/properties/${property.id}`}>
-                                <Eye className="w-4 h-4" />
-                              </Link>
-                            </Button>
-                            <Button
-                              asChild
-                              size="sm"
-                              variant="outline"
-                            >
-                              <Link href={`/properties/${property.id}/edit`}>
-                                <Edit className="w-4 h-4" />
-                              </Link>
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                        </div>
+                      </div>
+                      
+                      {/* Actions */}
+                      <div className="flex items-center gap-2">
+                        <Button
+                          asChild
+                          size="sm"
+                          variant="outline"
+                          className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                        >
+                          <Link href={`/dashboard/properties/${property.id}`}>
+                            <BarChart3 className="w-4 h-4 mr-1" />
+                            Analytics
+                          </Link>
+                        </Button>
+                        <Button asChild size="sm" variant="outline">
+                          <Link href={`/properties/${property.id}`}>
+                            <Eye className="w-4 h-4 mr-1" />
+                            Voir
+                          </Link>
+                        </Button>
+                        <Button asChild size="sm" variant="outline">
+                          <Link href={`/properties/${property.id}/edit`}>
+                            <Edit className="w-4 h-4 mr-1" />
+                            Modifier
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Métriques avec explications */}
+                  <div className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <SessionsMetric value={property.stats.totalSessions} />
+                      <TimeMetric value={property.stats.averageTimeSpent} />
+                      <ScrollMetric value={Math.round(property.stats.averageScrollDepth)} />
+                      <BounceMetric value={Math.round(property.stats.bounceRate)} />
+                    </div>
+                    
+                    {/* Statistiques supplémentaires */}
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                          <div className="text-2xl font-bold text-blue-600">{property.stats.viewsCount}</div>
+                          <div className="text-sm text-gray-600">Vues totales</div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-green-600">{property.stats.visitRequestsCount}</div>
+                          <div className="text-sm text-gray-600">Demandes de visite</div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-purple-600">{property._count.favorites}</div>
+                          <div className="text-sm text-gray-600">Favoris</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {/* Pagination */}

@@ -14,26 +14,16 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
-// Interfaces pour les données d'analytics
-interface TimeAnalytics {
+// Interface pour les analytics spécifiques à une propriété
+interface PropertyAnalytics {
   overview: {
     totalSessions: number;
+    completedSessions: number;
     averageTimeSpent: number;
-    averageActiveTime: number;
     averageScrollDepth: number;
     bounceRate: number;
-    engagementRate: number;
+    viewsCount: number;
   };
-  propertiesPerformance: Array<{
-    propertyId: string;
-    propertyTitle: string;
-    totalSessions: number;
-    averageTimeSpent: number;
-    averageActiveTime: number;
-    averageScrollDepth: number;
-    bounceRate: number;
-    conversionRate: number;
-  }>;
   timeDistribution: Array<{
     timeRange: string;
     count: number;
@@ -42,11 +32,6 @@ interface TimeAnalytics {
   engagementEvents: Array<{
     eventType: string;
     count: number;
-    properties: Array<{
-      propertyId: string;
-      propertyTitle: string;
-      count: number;
-    }>;
   }>;
   trends: {
     dailyAverages: Array<{
@@ -102,7 +87,7 @@ export default function PropertyMetricsPage() {
   const { data: session } = useSession();
 
   const [property, setProperty] = useState<Property | null>(null);
-  const [analytics, setAnalytics] = useState<TimeAnalytics | null>(null);
+  const [analytics, setAnalytics] = useState<PropertyAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -115,10 +100,10 @@ export default function PropertyMetricsPage() {
         setLoading(true);
         setError('');
 
-        // Récupérer les données de la propriété
+        // Récupérer les données de la propriété et ses analytics spécifiques
         const [propertyResponse, analyticsResponse] = await Promise.all([
           fetch(`/api/properties/${propertyId}`),
-          fetch('/api/dashboard/agent-time-analytics')
+          fetch(`/api/properties/${propertyId}/analytics`)
         ]);
 
         if (propertyResponse.ok) {
@@ -217,10 +202,7 @@ export default function PropertyMetricsPage() {
     .filter(media => media.type === 'PHOTO')
     .sort((a, b) => a.order - b.order);
 
-  // Trouver les métriques spécifiques à cette propriété
-  const propertyMetrics = analytics?.propertiesPerformance.find(
-    p => p.propertyId === propertyId
-  );
+  // Les analytics sont maintenant spécifiques à cette propriété
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -293,7 +275,7 @@ export default function PropertyMetricsPage() {
                 <div className="text-sm text-gray-600">m²</div>
               </div>
               <div className="text-center">
-                <div className="text-lg font-bold text-gray-900">{property.viewsCount || 0}</div>
+                <div className="text-lg font-bold text-gray-900">{analytics?.overview.viewsCount || 0}</div>
                 <div className="text-sm text-gray-600">Vues</div>
               </div>
               <div className="text-center">
@@ -337,7 +319,7 @@ export default function PropertyMetricsPage() {
                 </div>
                 <div className="ml-4">
                   <p className="text-2xl font-bold text-gray-900">
-                    {propertyMetrics?.totalSessions || analytics.overview.totalSessions}
+                    {analytics.overview.totalSessions}
                   </p>
                   <p className="text-gray-600">Sessions totales</p>
                 </div>
@@ -351,7 +333,7 @@ export default function PropertyMetricsPage() {
                 </div>
                 <div className="ml-4">
                   <p className="text-2xl font-bold text-gray-900">
-                    {formatTime(propertyMetrics?.averageTimeSpent || analytics.overview.averageTimeSpent)}
+                    {formatTime(analytics.overview.averageTimeSpent)}
                   </p>
                   <p className="text-gray-600">Temps moyen</p>
                 </div>
@@ -365,7 +347,7 @@ export default function PropertyMetricsPage() {
                 </div>
                 <div className="ml-4">
                   <p className="text-2xl font-bold text-gray-900">
-                    {propertyMetrics?.averageScrollDepth.toFixed(1) || analytics.overview.averageScrollDepth.toFixed(1)}%
+                    {analytics.overview.averageScrollDepth.toFixed(1)}%
                   </p>
                   <p className="text-gray-600">Scroll moyen</p>
                 </div>
@@ -379,7 +361,7 @@ export default function PropertyMetricsPage() {
                 </div>
                 <div className="ml-4">
                   <p className="text-2xl font-bold text-gray-900">
-                    {propertyMetrics?.bounceRate.toFixed(1) || analytics.overview.bounceRate.toFixed(1)}%
+                    {analytics.overview.bounceRate.toFixed(1)}%
                   </p>
                   <p className="text-gray-600">Taux de rebond</p>
                 </div>
@@ -456,15 +438,50 @@ export default function PropertyMetricsPage() {
 
           {/* Tendances temporelles */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">Tendances des 7 derniers jours</h3>
-            <div className="space-y-2">
-              {analytics.trends.dailyAverages.slice(-7).map((day, index) => {
+            {(() => {
+              // Calculer l'âge de la propriété pour adapter l'affichage
+              const propertyCreated = new Date(property.createdAt);
+              const now = new Date();
+              const daysSinceCreation = Math.ceil((now.getTime() - propertyCreated.getTime()) / (1000 * 60 * 60 * 24));
+              
+              // Filtrer les données pour ne montrer que les jours depuis la création
+              const relevantDays = analytics.trends.dailyAverages.filter(day => {
+                const dayDate = new Date(day.date);
+                return dayDate >= propertyCreated;
+              }).slice(-Math.min(daysSinceCreation, 7));
+              
+              const displayPeriod = daysSinceCreation === 1 ? "aujourd'hui" : 
+                                  daysSinceCreation <= 7 ? `${daysSinceCreation} derniers jours` :
+                                  "7 derniers jours";
+              
+              return (
+                <>
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Tendances {displayPeriod}
+                    </h3>
+                    {daysSinceCreation === 1 && (
+                      <div className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                        Propriété créée aujourd'hui
+                      </div>
+                    )}
+                  </div>
+                  
+                  {relevantDays.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p>Aucune donnée de tendance disponible encore.</p>
+                      <p className="text-sm">Les visiteurs doivent d'abord consulter votre propriété.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {relevantDays.map((day, index) => {
                 const date = new Date(day.date).toLocaleDateString('fr-FR', {
                   weekday: 'short',
                   day: 'numeric',
                   month: 'short'
                 });
-                const maxSessions = Math.max(...analytics.trends.dailyAverages.slice(-7).map(d => d.sessionsCount));
+                const maxSessions = Math.max(...relevantDays.map(d => d.sessionsCount));
                 const percentage = maxSessions > 0 ? (day.sessionsCount / maxSessions) * 100 : 0;
                 
                 return (
@@ -484,8 +501,12 @@ export default function PropertyMetricsPage() {
                     </div>
                   </div>
                 );
-              })}
-            </div>
+                      })}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
 
           {/* Conseils d'optimisation */}
@@ -495,7 +516,7 @@ export default function PropertyMetricsPage() {
               Conseils d'optimisation
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {(propertyMetrics?.bounceRate || analytics.overview.bounceRate) > 60 && (
+              {analytics.overview.bounceRate > 60 && (
                 <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
                   <h4 className="font-medium text-orange-800 mb-2">Taux de rebond élevé</h4>
                   <p className="text-sm text-orange-700">
@@ -504,7 +525,7 @@ export default function PropertyMetricsPage() {
                 </div>
               )}
               
-              {(propertyMetrics?.averageScrollDepth || analytics.overview.averageScrollDepth) < 30 && (
+              {analytics.overview.averageScrollDepth < 30 && (
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <h4 className="font-medium text-blue-800 mb-2">Faible engagement</h4>
                   <p className="text-sm text-blue-700">
@@ -513,7 +534,7 @@ export default function PropertyMetricsPage() {
                 </div>
               )}
               
-              {(propertyMetrics?.averageTimeSpent || analytics.overview.averageTimeSpent) > 120 && (
+              {analytics.overview.averageTimeSpent > 120 && (
                 <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                   <h4 className="font-medium text-green-800 mb-2">Excellent engagement</h4>
                   <p className="text-sm text-green-700">
@@ -522,11 +543,11 @@ export default function PropertyMetricsPage() {
                 </div>
               )}
 
-              {(propertyMetrics?.conversionRate || 0) > 5 && (
+              {analytics.overview.totalSessions > 10 && analytics.overview.viewsCount > 0 && (analytics.overview.totalSessions / analytics.overview.viewsCount) > 2 && (
                 <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                  <h4 className="font-medium text-purple-800 mb-2">Bon taux de conversion</h4>
+                  <h4 className="font-medium text-purple-800 mb-2">Bon engagement</h4>
                   <p className="text-sm text-purple-700">
-                    Votre annonce génère de bonnes conversions en demandes de visite. Continuez ainsi !
+                    Votre annonce génère plusieurs sessions par vue. Les visiteurs reviennent consulter votre propriété !
                   </p>
                 </div>
               )}

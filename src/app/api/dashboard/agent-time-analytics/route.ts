@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
     const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
 
     // Récupérer toutes les sessions de temps pour les propriétés de l'agent
-    const timeSessions = await prisma.propertyTimeSession.findMany({
+    const allTimeSessions = await prisma.propertyTimeSession.findMany({
       where: {
         property: {
           agentId: agentId
@@ -100,6 +100,7 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             titre: true,
+            createdAt: true, // Ajouter la date de création pour filtrer
             _count: {
               select: {
                 visitRequests: true
@@ -111,6 +112,13 @@ export async function GET(request: NextRequest) {
       orderBy: {
         enteredAt: 'desc'
       }
+    });
+
+    // IMPORTANT: Filtrer les sessions pour qu'elles soient postérieures à la création de la propriété
+    const timeSessions = allTimeSessions.filter(session => {
+      const sessionDate = new Date(session.enteredAt);
+      const propertyCreationDate = new Date(session.property.createdAt);
+      return sessionDate >= propertyCreationDate;
     });
 
     // Calculer les métriques globales
