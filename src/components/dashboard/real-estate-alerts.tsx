@@ -52,6 +52,10 @@ export function RealEstateAlerts({ propertyId, analytics, className = '' }: Real
     if (analytics) {
       generateRealTimeAlerts(analytics);
       generateRecommendations(analytics);
+    } else {
+      // Afficher des alertes d'état sans données
+      generateInitialAlerts();
+      generateInitialRecommendations();
     }
   }, [analytics, propertyId]);
 
@@ -152,6 +156,30 @@ export function RealEstateAlerts({ propertyId, analytics, className = '' }: Real
     setAlerts(newAlerts);
   };
 
+  const generateInitialAlerts = () => {
+    const initialAlerts: Alert[] = [
+      {
+        id: 'posthog-setup',
+        type: 'info',
+        title: '📊 Analytics PostHog en cours de configuration',
+        description: 'Votre système d\'analytics avancé se met en place. Les premières données apparaîtront après quelques visites.',
+        priority: 60,
+        timestamp: new Date(),
+        actionable: false
+      },
+      {
+        id: 'optimization-ready',
+        type: 'success', 
+        title: '🚀 Système d\'optimisation prêt !',
+        description: 'Votre propriété est équipée d\'un système d\'analytics de niveau entreprise. Les insights détaillés arrivent bientôt.',
+        priority: 50,
+        timestamp: new Date(),
+        actionable: false
+      }
+    ];
+    setAlerts(initialAlerts);
+  };
+
   const generateRecommendations = (data: any) => {
     const newRecommendations: Recommendation[] = [];
 
@@ -232,6 +260,32 @@ export function RealEstateAlerts({ propertyId, analytics, className = '' }: Real
       const priorityOrder = { critical: 3, important: 2, suggestion: 1 };
       return priorityOrder[b.type] - priorityOrder[a.type] || b.estimatedImpact - a.estimatedImpact;
     }));
+  };
+
+  const generateInitialRecommendations = () => {
+    const initialRecommendations: Recommendation[] = [
+      {
+        id: 'setup-complete',
+        type: 'suggestion',
+        title: 'Optimisations automatiques activées',
+        description: 'Votre propriété bénéficie maintenant d\'un système d\'analytics avancé avec recommandations automatiques.',
+        action: 'Partagez votre annonce pour commencer à collecter des données comportementales précieuses',
+        impact: 'Insights détaillés sur le comportement de vos visiteurs',
+        difficulty: 'easy',
+        estimatedImpact: 50
+      },
+      {
+        id: 'posthog-features',
+        type: 'suggestion', 
+        title: 'Fonctionnalités analytics disponibles',
+        description: 'Session recording, heatmaps, funnels de conversion et signaux d\'achat automatiquement détectés.',
+        action: 'Les données apparaîtront dans les onglets Vue d\'ensemble, Comportement, Entonnoir et Temporel',
+        impact: 'Vision complète du parcours de vos visiteurs',
+        difficulty: 'easy',
+        estimatedImpact: 75
+      }
+    ];
+    setRecommendations(initialRecommendations);
   };
 
   const dismissAlert = (alertId: string) => {

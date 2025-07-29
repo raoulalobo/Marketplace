@@ -305,9 +305,11 @@ export default function PropertyMetricsPage() {
       </div>
 
       {/* Métriques de performance */}
-      {analytics && (
-        <>
-          {/* Vue d'ensemble des métriques */}
+      <>
+        {/* Vue d'ensemble des métriques */}
+        {analytics ? (
+          <>
+            {/* Vue d'ensemble des métriques */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
@@ -543,8 +545,33 @@ export default function PropertyMetricsPage() {
           <div className="mt-8">
             <RealEstateInsights propertyId={propertyId} />
           </div>
-        </>
-      )}
+          </>
+        ) : (
+          <>
+            {/* Message d'état sans données analytics */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+              <div className="text-center">
+                <BarChart3 className="w-12 h-12 text-blue-600 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                  Analytics PostHog en cours de chargement...
+                </h3>
+                <p className="text-blue-700 mb-4">
+                  Les données d'analytics peuvent prendre quelques minutes à apparaître après les premières visites.
+                </p>
+              </div>
+            </div>
+
+            {/* Afficher quand même les composants avec état de chargement */}
+            <div className="mt-8">
+              <RealEstateAlerts propertyId={propertyId} analytics={null} />
+            </div>
+
+            <div className="mt-8">
+              <RealEstateInsights propertyId={propertyId} />
+            </div>
+          </>
+        )}
+      </>
     </div>
   );
 }

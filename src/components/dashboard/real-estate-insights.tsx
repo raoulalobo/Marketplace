@@ -114,9 +114,57 @@ export function RealEstateInsights({ propertyId, className = '' }: RealEstateIns
   if (error || !insights) {
     return (
       <div className={`bg-white rounded-lg shadow-lg p-6 ${className}`}>
-        <div className="text-center text-red-600">
-          <AlertTriangle className="w-8 h-8 mx-auto mb-2" />
-          <p>{error || 'Aucune donnée disponible'}</p>
+        <div className="p-6 border-b">
+          <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2 mb-4">
+            <BarChart3 className="w-6 h-6 text-blue-600" />
+            Insights Immobiliers PostHog
+          </h3>
+        </div>
+        <div className="p-6">
+          {error ? (
+            <div className="text-center text-red-600">
+              <AlertTriangle className="w-8 h-8 mx-auto mb-2" />
+              <p>{error}</p>
+            </div>
+          ) : (
+            <div className="text-center">
+              <div className="mb-6">
+                <BarChart3 className="w-16 h-16 text-blue-400 mx-auto mb-4" />
+                <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                  Dashboard Analytics en préparation
+                </h4>
+                <p className="text-gray-600 mb-4">
+                  Votre système PostHog Analytics de niveau entreprise est opérationnel !
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="p-4 bg-blue-50 rounded-lg text-left">
+                  <h5 className="font-semibold text-blue-900 mb-2">📊 4 Onglets d'Insights</h5>
+                  <p className="text-sm text-blue-700">Vue d'ensemble, Comportement, Entonnoir, Temporel</p>
+                </div>
+                <div className="p-4 bg-green-50 rounded-lg text-left">
+                  <h5 className="font-semibold text-green-900 mb-2">🎯 15+ Métriques</h5>
+                  <p className="text-sm text-green-700">Scroll, engagement, intentions d'achat, devices</p>
+                </div>
+                <div className="p-4 bg-purple-50 rounded-lg text-left">
+                  <h5 className="font-semibold text-purple-900 mb-2">🚨 Alertes Temps Réel</h5>
+                  <p className="text-sm text-purple-700">Signaux d'achat et recommandations automatiques</p>
+                </div>
+                <div className="p-4 bg-orange-50 rounded-lg text-left">
+                  <h5 className="font-semibold text-orange-900 mb-2">📈 Scoring de Performance</h5>
+                  <p className="text-sm text-orange-700">Score 0-100 avec prédictions de vente</p>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  <strong>Les données apparaîtront automatiquement</strong> après quelques visites sur votre propriété. 
+                  Le tracking est déjà actif ! 🚀
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
