@@ -9,7 +9,7 @@ import { PostHogProvider } from 'posthog-js/react';
 
 if (typeof window !== 'undefined') {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com',
+    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
     // Configuration spécifique pour le real estate
     capture_pageview: false, // Nous gérerons manuellement les page views
     capture_pageleave: true, // Tracker la durée des sessions
