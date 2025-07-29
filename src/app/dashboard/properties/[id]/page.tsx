@@ -14,31 +14,25 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
-// Interface pour les analytics spécifiques à une propriété
+// Interface pour les analytics PostHog (compatible avec l'API existante)
 interface PropertyAnalytics {
-  overview: {
-    totalSessions: number;
-    completedSessions: number;
-    averageTimeSpent: number;
-    averageScrollDepth: number;
-    bounceRate: number;
-    viewsCount: number;
-  };
-  timeDistribution: Array<{
-    timeRange: string;
-    count: number;
-    percentage: number;
+  totalViews: number;
+  totalSessions: number;
+  averageTime: number;
+  bounceRate: number;
+  conversionRate: number;
+  dailyTrends: Array<{
+    date: string;
+    sessions: number;
+    averageTime: number;
   }>;
-  engagementEvents: Array<{
-    eventType: string;
-    count: number;
+  topPages: Array<{
+    page: string;
+    views: number;
   }>;
-  trends: {
-    dailyAverages: Array<{
-      date: string;
-      averageTimeSpent: number;
-      sessionsCount: number;
-    }>;
+  userTypes: {
+    authenticated: number;
+    anonymous: number;
   };
 }
 
@@ -100,10 +94,10 @@ export default function PropertyMetricsPage() {
         setLoading(true);
         setError('');
 
-        // Récupérer les données de la propriété et ses analytics spécifiques
+        // Récupérer les données de la propriété et ses analytics PostHog
         const [propertyResponse, analyticsResponse] = await Promise.all([
           fetch(`/api/properties/${propertyId}`),
-          fetch(`/api/properties/${propertyId}/analytics`)
+          fetch(`/api/properties/${propertyId}/posthog-analytics`)
         ]);
 
         if (propertyResponse.ok) {
@@ -115,9 +109,10 @@ export default function PropertyMetricsPage() {
 
         if (analyticsResponse.ok) {
           const analyticsData = await analyticsResponse.json();
-          setAnalytics(analyticsData);
+          // Les données PostHog sont dans analyticsData.data
+          setAnalytics(analyticsData.success ? analyticsData.data : null);
         } else {
-          console.warn('Erreur lors du chargement des analytics');
+          console.warn('Erreur lors du chargement des analytics PostHog');
         }
 
       } catch (err) {
@@ -275,7 +270,7 @@ export default function PropertyMetricsPage() {
                 <div className="text-sm text-gray-600">m²</div>
               </div>
               <div className="text-center">
-                <div className="text-lg font-bold text-gray-900">{analytics?.overview.viewsCount || 0}</div>
+                <div className="text-lg font-bold text-gray-900">{analytics?.totalViews || 0}</div>
                 <div className="text-sm text-gray-600">Vues</div>
               </div>
               <div className="text-center">
@@ -319,7 +314,7 @@ export default function PropertyMetricsPage() {
                 </div>
                 <div className="ml-4">
                   <p className="text-2xl font-bold text-gray-900">
-                    {analytics.overview.totalSessions}
+                    {analytics.totalSessions}
                   </p>
                   <p className="text-gray-600">Sessions totales</p>
                 </div>
@@ -333,7 +328,7 @@ export default function PropertyMetricsPage() {
                 </div>
                 <div className="ml-4">
                   <p className="text-2xl font-bold text-gray-900">
-                    {formatTime(analytics.overview.averageTimeSpent)}
+                    {formatTime(analytics.averageTime)}
                   </p>
                   <p className="text-gray-600">Temps moyen</p>
                 </div>
@@ -347,9 +342,9 @@ export default function PropertyMetricsPage() {
                 </div>
                 <div className="ml-4">
                   <p className="text-2xl font-bold text-gray-900">
-                    {analytics.overview.averageScrollDepth.toFixed(1)}%
+                    {analytics.conversionRate.toFixed(1)}%
                   </p>
-                  <p className="text-gray-600">Scroll moyen</p>
+                  <p className="text-gray-600">Taux conversion</p>
                 </div>
               </div>
             </div>
@@ -361,7 +356,7 @@ export default function PropertyMetricsPage() {
                 </div>
                 <div className="ml-4">
                   <p className="text-2xl font-bold text-gray-900">
-                    {analytics.overview.bounceRate.toFixed(1)}%
+                    {analytics.bounceRate.toFixed(1)}%
                   </p>
                   <p className="text-gray-600">Taux de rebond</p>
                 </div>
@@ -369,69 +364,45 @@ export default function PropertyMetricsPage() {
             </div>
           </div>
 
-          {/* Distribution du temps et événements */}
+          {/* Métriques supplémentaires PostHog */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            {/* Distribution du temps passé */}
+            {/* Types d'utilisateurs */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">Distribution du temps</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Types d'utilisateurs</h3>
               <div className="space-y-4">
-                {analytics.timeDistribution.map((range, index) => (
-                  <div key={index} className="flex items-center">
-                    <div className="w-20 text-sm text-gray-600">{range.timeRange}</div>
-                    <div className="flex-1 mx-4">
-                      <div className="w-full bg-gray-200 rounded-full h-3">
-                        <div 
-                          className="bg-blue-600 h-3 rounded-full transition-all duration-500"
-                          style={{ width: `${range.percentage}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                    <div className="w-16 text-right">
-                      <div className="text-sm font-medium text-gray-900">{range.count}</div>
-                      <div className="text-xs text-gray-500">{range.percentage}%</div>
-                    </div>
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Users className="w-5 h-5 text-blue-600" />
+                    <span className="text-sm font-medium text-gray-900">Utilisateurs connectés</span>
                   </div>
-                ))}
+                  <div className="text-sm font-bold text-blue-600">{analytics.userTypes.authenticated}</div>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Eye className="w-5 h-5 text-gray-600" />
+                    <span className="text-sm font-medium text-gray-900">Visiteurs anonymes</span>
+                  </div>
+                  <div className="text-sm font-bold text-gray-600">{analytics.userTypes.anonymous}</div>
+                </div>
               </div>
             </div>
 
-            {/* Événements d'engagement */}
+            {/* Résumé PostHog */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">Événements d'engagement</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Analytics PostHog</h3>
               <div className="space-y-4">
-                {analytics.engagementEvents.slice(0, 6).map((event, index) => {
-                  let eventLabel = event.eventType;
-                  let EventIcon = MousePointer;
-                  
-                  switch (event.eventType) {
-                    case 'visit_request_clicked':
-                      eventLabel = 'Demandes de visite';
-                      EventIcon = Calendar;
-                      break;
-                    case 'favorite_clicked':
-                      eventLabel = 'Ajouts aux favoris';
-                      EventIcon = Heart;
-                      break;
-                    case 'share_clicked':
-                      eventLabel = 'Partages';
-                      EventIcon = Share2;
-                      break;
-                    case 'image_changed':
-                      eventLabel = 'Navigation photos';
-                      EventIcon = Eye;
-                      break;
-                  }
-
-                  return (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <EventIcon className="w-5 h-5 text-gray-600" />
-                        <span className="text-sm font-medium text-gray-900">{eventLabel}</span>
-                      </div>
-                      <div className="text-sm font-bold text-blue-600">{event.count}</div>
-                    </div>
-                  );
-                })}
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <h4 className="font-medium text-green-800 mb-2">Données fiables</h4>
+                  <p className="text-sm text-green-700">
+                    Analytics collectés avec PostHog, garantissant la cohérence temporelle et la précision des métriques.
+                  </p>
+                </div>
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="font-medium text-blue-800 mb-2">Vues totales</h4>
+                  <p className="text-sm text-blue-700">
+                    {analytics.totalViews} vues sur {analytics.totalSessions} sessions
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -444,8 +415,8 @@ export default function PropertyMetricsPage() {
               const now = new Date();
               const daysSinceCreation = Math.ceil((now.getTime() - propertyCreated.getTime()) / (1000 * 60 * 60 * 24));
               
-              // Filtrer les données pour ne montrer que les jours depuis la création
-              const relevantDays = analytics.trends.dailyAverages.filter(day => {
+              // Filtrer les données PostHog pour ne montrer que les jours depuis la création
+              const relevantDays = analytics.dailyTrends.filter(day => {
                 const dayDate = new Date(day.date);
                 return dayDate >= propertyCreated;
               }).slice(-Math.min(daysSinceCreation, 7));
@@ -481,8 +452,8 @@ export default function PropertyMetricsPage() {
                   day: 'numeric',
                   month: 'short'
                 });
-                const maxSessions = Math.max(...relevantDays.map(d => d.sessionsCount));
-                const percentage = maxSessions > 0 ? (day.sessionsCount / maxSessions) * 100 : 0;
+                const maxSessions = Math.max(...relevantDays.map(d => d.sessions));
+                const percentage = maxSessions > 0 ? (day.sessions / maxSessions) * 100 : 0;
                 
                 return (
                   <div key={index} className="flex items-center gap-4 p-3 hover:bg-gray-50 rounded-lg">
@@ -496,8 +467,8 @@ export default function PropertyMetricsPage() {
                       </div>
                     </div>
                     <div className="text-right min-w-[80px]">
-                      <div className="text-sm font-bold text-gray-900">{day.sessionsCount} sessions</div>
-                      <div className="text-xs text-gray-500">{formatTime(day.averageTimeSpent)} moy.</div>
+                      <div className="text-sm font-bold text-gray-900">{day.sessions} sessions</div>
+                      <div className="text-xs text-gray-500">{formatTime(day.averageTime)} moy.</div>
                     </div>
                   </div>
                 );
@@ -516,7 +487,7 @@ export default function PropertyMetricsPage() {
               Conseils d'optimisation
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {analytics.overview.bounceRate > 60 && (
+              {analytics.bounceRate > 60 && (
                 <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
                   <h4 className="font-medium text-orange-800 mb-2">Taux de rebond élevé</h4>
                   <p className="text-sm text-orange-700">
@@ -525,16 +496,16 @@ export default function PropertyMetricsPage() {
                 </div>
               )}
               
-              {analytics.overview.averageScrollDepth < 30 && (
+              {analytics.conversionRate < 5 && analytics.totalSessions > 5 && (
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h4 className="font-medium text-blue-800 mb-2">Faible engagement</h4>
+                  <h4 className="font-medium text-blue-800 mb-2">Faible taux de conversion</h4>
                   <p className="text-sm text-blue-700">
-                    Les visiteurs ne scrollent pas beaucoup. Améliorez votre description et ajoutez plus de détails.
+                    Peu de visiteurs effectuent des actions. Améliorez votre description et ajoutez un appel à l'action.
                   </p>
                 </div>
               )}
               
-              {analytics.overview.averageTimeSpent > 120 && (
+              {analytics.averageTime > 120 && (
                 <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                   <h4 className="font-medium text-green-800 mb-2">Excellent engagement</h4>
                   <p className="text-sm text-green-700">
@@ -543,7 +514,7 @@ export default function PropertyMetricsPage() {
                 </div>
               )}
 
-              {analytics.overview.totalSessions > 10 && analytics.overview.viewsCount > 0 && (analytics.overview.totalSessions / analytics.overview.viewsCount) > 2 && (
+              {analytics.totalSessions > 10 && analytics.totalViews > 0 && (analytics.totalSessions / analytics.totalViews) > 2 && (
                 <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
                   <h4 className="font-medium text-purple-800 mb-2">Bon engagement</h4>
                   <p className="text-sm text-purple-700">
@@ -551,6 +522,13 @@ export default function PropertyMetricsPage() {
                   </p>
                 </div>
               )}
+              
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <h4 className="font-medium text-green-800 mb-2">Analytics PostHog</h4>
+                <p className="text-sm text-green-700">
+                  Données collectées avec PostHog pour une précision maximale et des insights avancés.
+                </p>
+              </div>
             </div>
           </div>
         </>

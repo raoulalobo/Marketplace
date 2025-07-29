@@ -23,7 +23,7 @@ import { ShareModal } from '@/components/modals/share-modal';
 import { AuthRequiredModal } from '@/components/modals/auth-required-modal';
 import { ToastContainer, useToast } from '@/components/ui/toast';
 import { useFavorite } from '@/hooks/use-favorite';
-import { useTimeTracking } from '@/hooks/use-time-tracking';
+import { usePostHogPropertyTracking } from '@/hooks/use-posthog-property-tracking';
 
 // Interface pour les propriétés
 interface Property {
@@ -116,13 +116,13 @@ export default function PropertyDetailPage() {
     }
   });
 
-  // Hook pour tracker le temps passé sur la propriété
-  const timeTracking = useTimeTracking({
+  // Hook PostHog pour tracker le temps passé sur la propriété
+  const timeTracking = usePostHogPropertyTracking({
     propertyId: params.id as string,
     enabled: true, // Toujours activé pour tous les utilisateurs
     heartbeatInterval: 15, // Heartbeat toutes les 15 secondes
     onError: (error) => {
-      console.error('Erreur de time tracking:', error);
+      console.error('Erreur de tracking PostHog:', error);
       // Pas de toast d'erreur pour ne pas déranger l'utilisateur
     }
   });

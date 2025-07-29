@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/components/providers/auth-provider';
+import PostHogProviderWrapper from '@/providers/posthog-provider';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 
@@ -23,13 +24,15 @@ export default function RootLayout({
     <html lang="fr">
       <body className={inter.className}>
         <AuthProvider>
-          <div className="min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-          </div>
+          <PostHogProviderWrapper>
+            <div className="min-h-screen flex flex-col">
+              <Navbar />
+              <main className="flex-1">
+                {children}
+              </main>
+              <Footer />
+            </div>
+          </PostHogProviderWrapper>
         </AuthProvider>
       </body>
     </html>
