@@ -6,6 +6,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { PropertyImage } from '@/components/ui/property-image';
+import { RealEstateInsights } from '@/components/dashboard/real-estate-insights';
+import { RealEstateAlerts } from '@/components/dashboard/real-estate-alerts';
 import { 
   ArrowLeft, BarChart3, Clock, Users, Eye, TrendingUp, 
   MousePointer, Heart, Calendar, MapPin, Home, 
@@ -530,6 +532,16 @@ export default function PropertyMetricsPage() {
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Alertes et Recommandations Temps Réel */}
+          <div className="mt-8">
+            <RealEstateAlerts propertyId={propertyId} analytics={analytics} />
+          </div>
+
+          {/* Insights Immobiliers Avancés PostHog */}
+          <div className="mt-8">
+            <RealEstateInsights propertyId={propertyId} />
           </div>
         </>
       )}

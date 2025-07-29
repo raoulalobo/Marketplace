@@ -212,8 +212,13 @@ export default function PropertyDetailPage() {
 
   // Gestionnaires d'événements pour les actions
   const handleVisitRequest = () => {
-    // Tracker l'interaction
+    // Tracker l'interaction avec intention d'achat élevée
     timeTracking.trackEvent('visit_request_clicked');
+    timeTracking.trackPurchaseIntent('high', 'visit_request_button');
+    timeTracking.trackElementInteraction('visit_button', 'click', { 
+      button_text: 'Demander une visite',
+      price_displayed: property?.prix 
+    });
     
     if (!session) {
       setAuthAction('visit');
@@ -242,9 +247,13 @@ export default function PropertyDetailPage() {
   };
 
   const handleFavorite = async () => {
-    // Tracker l'interaction
-    timeTracking.trackEvent('favorite_clicked', { 
-      currentState: isFavorite ? 'remove' : 'add' 
+    // Tracker l'interaction avec intention d'achat modérée
+    const action = isFavorite ? 'remove' : 'add';
+    timeTracking.trackEvent('favorite_clicked', { currentState: action });
+    timeTracking.trackPurchaseIntent('medium', 'favorite_button');
+    timeTracking.trackElementInteraction('favorite_button', action, { 
+      property_type: property?.type,
+      property_price: property?.prix 
     });
     
     if (!session) {
@@ -343,6 +352,15 @@ export default function PropertyDetailPage() {
                           fromIndex: currentImageIndex, 
                           toIndex: index 
                         });
+                        timeTracking.trackElementInteraction('image_thumbnail', 'click', {
+                          image_index: index,
+                          total_images: photos.length,
+                          engagement_level: 'visual_exploration'
+                        });
+                        // Engagement modéré si l'utilisateur explore plusieurs photos
+                        if (index !== currentImageIndex) {
+                          timeTracking.trackPurchaseIntent('low', 'image_exploration');
+                        }
                       }}
                       className={`relative h-16 w-16 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-colors ${
                         index === currentImageIndex ? 'border-blue-600' : 'border-gray-200'

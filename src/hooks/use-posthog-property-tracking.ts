@@ -202,14 +202,61 @@ export function usePostHogPropertyTracking({
     isPageVisibleRef.current = isVisible;
   }, [propertyId, posthog]);
 
-  // Gestionnaire de scroll
+  // Gestionnaire de scroll avancé avec métriques enrichies
   const handleScroll = useCallback(() => {
     const scrollDepth = calculateScrollDepth();
+    const now = Date.now();
+    
+    // Capturer des événements de scroll significatifs
+    if (scrollDepth > 25 && !sessionStorage.getItem(`scroll_25_${sessionIdRef.current}`)) {
+      sessionStorage.setItem(`scroll_25_${sessionIdRef.current}`, 'true');
+      posthog?.capture('property_scroll_milestone', {
+        property_id: propertyId,
+        session_id: sessionIdRef.current,
+        milestone: '25%',
+        time_to_milestone: Math.round((now - startTimeRef.current) / 1000),
+        timestamp: now,
+      });
+    }
+    
+    if (scrollDepth > 50 && !sessionStorage.getItem(`scroll_50_${sessionIdRef.current}`)) {
+      sessionStorage.setItem(`scroll_50_${sessionIdRef.current}`, 'true');
+      posthog?.capture('property_scroll_milestone', {
+        property_id: propertyId,
+        session_id: sessionIdRef.current,
+        milestone: '50%',
+        time_to_milestone: Math.round((now - startTimeRef.current) / 1000),
+        timestamp: now,
+      });
+    }
+    
+    if (scrollDepth > 75 && !sessionStorage.getItem(`scroll_75_${sessionIdRef.current}`)) {
+      sessionStorage.setItem(`scroll_75_${sessionIdRef.current}`, 'true');
+      posthog?.capture('property_scroll_milestone', {
+        property_id: propertyId,
+        session_id: sessionIdRef.current,
+        milestone: '75%',
+        time_to_milestone: Math.round((now - startTimeRef.current) / 1000),
+        timestamp: now,
+      });
+    }
+    
+    if (scrollDepth > 90 && !sessionStorage.getItem(`scroll_90_${sessionIdRef.current}`)) {
+      sessionStorage.setItem(`scroll_90_${sessionIdRef.current}`, 'true');
+      posthog?.capture('property_scroll_complete', {
+        property_id: propertyId,
+        session_id: sessionIdRef.current,
+        completion_time: Math.round((now - startTimeRef.current) / 1000),
+        final_scroll_depth: scrollDepth,
+        timestamp: now,
+      });
+    }
+
     setState(prev => ({
       ...prev,
       scrollDepth
     }));
-  }, [calculateScrollDepth]);
+  }, [calculateScrollDepth, propertyId, posthog]);
 
   // Gestionnaire de beforeunload (fermeture de page)
   const handleBeforeUnload = useCallback(() => {
@@ -269,22 +316,70 @@ export function usePostHogPropertyTracking({
     };
   }, [state.isTracking, sendHeartbeat, heartbeatInterval, handleVisibilityChange, handleScroll, handleBeforeUnload]);
 
-  // Fonction pour ajouter des événements personnalisés
+  // Fonction pour ajouter des événements personnalisés enrichis
   const trackEvent = useCallback((type: string, data?: any) => {
     if (!posthog) return;
     
-    posthog.capture(`property_${type}`, {
+    const enrichedData = {
       property_id: propertyId,
       session_id: sessionIdRef.current,
       user_id: session?.user?.id,
+      user_role: session?.user?.role || 'ANONYMOUS',
+      session_duration: Math.round((Date.now() - startTimeRef.current) / 1000),
+      current_scroll_depth: maxScrollRef.current,
       timestamp: Date.now(),
       ...data
-    });
+    };
+    
+    posthog.capture(`property_${type}`, enrichedData);
   }, [posthog, propertyId, session]);
+
+  // Fonctions d'engagement spécialisées
+  const trackEngagement = useCallback((engagementType: string, elementData?: any) => {
+    if (!posthog) return;
+    
+    const engagementData = {
+      property_id: propertyId,
+      session_id: sessionIdRef.current,
+      engagement_type: engagementType,
+      time_before_engagement: Math.round((Date.now() - startTimeRef.current) / 1000),
+      scroll_depth_at_engagement: calculateScrollDepth(),
+      device_type: window.innerWidth < 768 ? 'mobile' : window.innerWidth < 1024 ? 'tablet' : 'desktop',
+      timestamp: Date.now(),
+      ...elementData
+    };
+    
+    posthog.capture('property_engagement', engagementData);
+  }, [posthog, propertyId, calculateScrollDepth]);
+
+  // Tracking des éléments clés de la page
+  const trackElementInteraction = useCallback((element: string, action: string, additionalData?: any) => {
+    trackEngagement('element_interaction', {
+      element,
+      action,
+      ...additionalData
+    });
+  }, [trackEngagement]);
+
+  // Tracking des intentions d'achat
+  const trackPurchaseIntent = useCallback((intentLevel: 'low' | 'medium' | 'high', trigger: string) => {
+    posthog?.capture('property_purchase_intent', {
+      property_id: propertyId,
+      session_id: sessionIdRef.current,
+      intent_level: intentLevel,
+      trigger,
+      session_duration_at_intent: Math.round((Date.now() - startTimeRef.current) / 1000),
+      scroll_depth_at_intent: calculateScrollDepth(),
+      timestamp: Date.now(),
+    });
+  }, [posthog, propertyId, calculateScrollDepth]);
 
   return {
     ...state,
     trackEvent,
+    trackEngagement,
+    trackElementInteraction,
+    trackPurchaseIntent,
     startTracking,
     endTracking
   };
