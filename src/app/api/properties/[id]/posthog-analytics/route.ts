@@ -85,7 +85,7 @@ async function fetchPostHogEvents(
   });
 
   const response = await fetch(
-    `https://us.i.posthog.com/api/projects/${POSTHOG_PROJECT_ID}/events/?${queryParams}`,
+    `https://us.posthog.com/api/projects/${POSTHOG_PROJECT_ID}/events/?${queryParams}`,
     {
       headers: {
         'Authorization': `Bearer ${POSTHOG_PERSONAL_API_KEY}`,
