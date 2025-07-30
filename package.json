@@ -13,8 +13,6 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@amplitude/analytics-browser": "^2.21.0",
-    "@amplitude/analytics-node": "^1.4.2",
     "@aws-sdk/client-s3": "^3.705.0",
     "@aws-sdk/lib-storage": "^3.705.0",
     "@hookform/resolvers": "^3.3.4",
