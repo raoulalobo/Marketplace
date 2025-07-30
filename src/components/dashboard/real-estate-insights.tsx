@@ -95,6 +95,14 @@ export function RealEstateInsights({ propertyId, className = '' }: RealEstateIns
         const response = await fetch(`/api/properties/${propertyId}/posthog-insights`);
         
         if (!response.ok) {
+          // Si l'API n'existe pas (404), ne pas faire échouer le composant
+          if (response.status === 404) {
+            console.log('ℹ️ API posthog-insights non disponible, fonctionnalité désactivée');
+            setInsights(null);
+            setLoading(false);
+            return;
+          }
+          
           const errorText = await response.text();
           console.error('❌ Erreur API posthog-insights:', {
             status: response.status,

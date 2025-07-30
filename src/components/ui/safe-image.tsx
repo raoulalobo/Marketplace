@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
 interface SafeImageProps {
-  src: string;
+  src: string | null | undefined;
   alt: string;
   fill?: boolean;
   width?: number;
@@ -74,6 +74,29 @@ export function SafeImage({
   const handleLoad = () => {
     setIsLoading(false);
   };
+
+  // Si aucune source n'est fournie ou si la source est vide, utiliser directement le placeholder
+  if (!src || src.trim() === '') {
+    const placeholderSrc = generatePlaceholderSvg(width || 400, height || 300);
+    
+    return (
+      <Image
+        src={placeholderSrc}
+        alt={`${alt} (image non disponible)`}
+        fill={fill}
+        width={!fill ? width : undefined}
+        height={!fill ? height : undefined}
+        className={cn(
+          "object-cover transition-opacity duration-300",
+          className
+        )}
+        priority={priority}
+        sizes={sizes}
+        quality={quality}
+        {...props}
+      />
+    );
+  }
 
   // Si erreur, utiliser le placeholder
   if (hasError) {

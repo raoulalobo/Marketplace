@@ -19,6 +19,7 @@ import dynamic from 'next/dynamic';
 
 const ClientMetricsHelpSection = dynamic(() => import('@/components/dashboard/client-metrics-help-section'), {
   ssr: false,
+  loading: () => <div>Chargement de l'aide...</div>
 });
 
 // Interfaces pour les données
@@ -339,7 +340,7 @@ export default function AgentPropertiesPage() {
                               width={80}
                               height={80}
                               className="h-20 w-20 rounded-lg object-cover"
-                              fallbackUrl=""
+                              propertyType={property.type}
                             />
                           ) : (
                             <div className="h-20 w-20 bg-gray-200 rounded-lg flex items-center justify-center">

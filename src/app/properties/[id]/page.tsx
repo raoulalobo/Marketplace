@@ -358,7 +358,7 @@ export default function PropertyDetailPage() {
                     fill
                     className="object-cover"
                     sizes="(max-width: 768px) 100vw, 800px"
-                    fallbackUrl=""
+                    propertyType={property.type}
                   />
                 ) : (
                   <div className="h-full bg-gray-200 flex items-center justify-center">
@@ -405,7 +405,7 @@ export default function PropertyDetailPage() {
                         fill
                         className="object-cover"
                         sizes="64px"
-                        fallbackUrl=""
+                        propertyType={property.type}
                       />
                     </button>
                   ))}
