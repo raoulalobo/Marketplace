@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test PostHog Client JavaScript</title>
+</head>
+<body>
+    <h1>Test des requêtes PostHog Client-Side</h1>
+    <div id="results"></div>
+    
+    <script>
+        // Test de la configuration PostHog similaire à notre provider
+        console.log('🚀 Début du test PostHog');
+        
+        // Configuration des variables (identiques à celles de l'env)
+        const POSTHOG_KEY = 'phc_1l7oig09VpZ6qkJV2OEvxj814oGdjkT6d8bdiCFuRbY';
+        const POSTHOG_HOST = 'https://eu.i.posthog.com';
+        
+        // Importer PostHog depuis CDN
+        const script = document.createElement('script');
+        script.src = 'https://app.posthog.com/static/array.js';
+        script.onload = function() {
+            console.log('📦 PostHog SDK chargé');
+            
+            // Initialisation PostHog (même config que le provider)
+            !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+            
+            window.posthog.init(POSTHOG_KEY, {
+                api_host: POSTHOG_HOST,
+                capture_pageview: false,
+                capture_pageleave: true,
+                session_recording: {
+                    maskAllInputs: true,
+                    maskInputOptions: {
+                        password: true,
+                        email: true,
+                    },
+                },
+                autocapture: {
+                    dom_event_allowlist: ['click'],
+                    element_allowlist: ['a', 'button'],
+                },
+                opt_out_capturing_by_default: false,
+                loaded: function(posthog) {
+                    console.log('✅ PostHog initialisé avec succès');
+                    console.log('🔧 Configuration:', {
+                        api_key: POSTHOG_KEY.substring(0, 10) + '...',
+                        api_host: POSTHOG_HOST,
+                        distinct_id: posthog.get_distinct_id()
+                    });
+                    
+                    // Intercepter les requêtes réseau pour analyser les appels
+                    const originalFetch = window.fetch;
+                    window.fetch = function(...args) {
+                        const url = args[0];
+                        if (typeof url === 'string' && url.includes('posthog.com')) {
+                            console.log('🌐 Requête PostHog interceptée:', {
+                                url: url,
+                                method: args[1]?.method || 'GET',
+                                headers: args[1]?.headers,
+                                body: args[1]?.body
+                            });
+                        }
+                        return originalFetch.apply(this, args)
+                            .then(response => {
+                                if (typeof url === 'string' && url.includes('posthog.com')) {
+                                    console.log('📡 Réponse PostHog:', {
+                                        url: url,
+                                        status: response.status,
+                                        statusText: response.statusText
+                                    });
+                                    if (response.status === 401) {
+                                        console.error('❌ Erreur 401 détectée sur:', url);
+                                    }
+                                }
+                                return response;
+                            })
+                            .catch(error => {
+                                if (typeof url === 'string' && url.includes('posthog.com')) {
+                                    console.error('💥 Erreur requête PostHog:', error);
+                                }
+                                throw error;
+                            });
+                    };
+                    
+                    // Test des différentes fonctionnalités
+                    setTimeout(() => {
+                        console.log('🧪 Début des tests...');
+                        
+                        // Test 1: Pageview
+                        console.log('📄 Test pageview...');
+                        posthog.capture('$pageview', {
+                            $current_url: window.location.href,
+                            page_type: 'test'
+                        });
+                        
+                        // Test 2: Event custom
+                        setTimeout(() => {
+                            console.log('📊 Test événement custom...');
+                            posthog.capture('test_event', {
+                                test: true,
+                                timestamp: Date.now()
+                            });
+                        }, 1000);
+                        
+                        // Test 3: Feature flags (cause potentielle du 401)
+                        setTimeout(() => {
+                            console.log('🎌 Test feature flags...');
+                            posthog.isFeatureEnabled('test_flag');
+                            posthog.onFeatureFlags(() => {
+                                console.log('🎯 Feature flags chargés');
+                            });
+                        }, 2000);
+                        
+                        // Test 4: Identify
+                        setTimeout(() => {
+                            console.log('👤 Test identify...');
+                            posthog.identify('test_user_' + Date.now(), {
+                                email: 'test@example.com',
+                                role: 'CLIENT'
+                            });
+                        }, 3000);
+                        
+                    }, 1000);
+                }
+            });
+        };
+        
+        document.head.appendChild(script);
+        
+        // Afficher les résultats dans la page
+        function updateResults(message) {
+            const results = document.getElementById('results');
+            results.innerHTML += '<p>' + new Date().toLocaleTimeString() + ': ' + message + '</p>';
+        }
+        
+        // Écouter les messages de la console
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        console.log = function(...args) {
+            updateResults('LOG: ' + args.join(' '));
+            originalLog.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            updateResults('ERROR: ' + args.join(' '));
+            originalError.apply(console, args);
+        };
+    </script>
+</body>
+</html>

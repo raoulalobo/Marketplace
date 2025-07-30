@@ -92,14 +92,24 @@ export default function PropertyMetricsPage() {
   // Charger les données de la propriété et ses analytics
   useEffect(() => {
     const fetchData = async () => {
+      // Attendre que la session soit chargée avant de faire les appels API
+      if (status === 'loading') {
+        return;
+      }
+
+      if (status === 'unauthenticated') {
+        setError('Authentification requise');
+        return;
+      }
+
       try {
         setLoading(true);
         setError('');
 
-        // Récupérer les données de la propriété et ses analytics PostHog
+        // Récupérer les données de la propriété et ses analytics Amplitude
         const [propertyResponse, analyticsResponse] = await Promise.all([
           fetch(`/api/properties/${propertyId}`),
-          fetch(`/api/properties/${propertyId}/posthog-analytics`)
+          fetch(`/api/properties/${propertyId}/amplitude-analytics`)
         ]);
 
         if (propertyResponse.ok) {
@@ -111,10 +121,18 @@ export default function PropertyMetricsPage() {
 
         if (analyticsResponse.ok) {
           const analyticsData = await analyticsResponse.json();
-          // Les données PostHog sont dans analyticsData.data
+          console.log('📊 Analytics Amplitude récupérés:', analyticsData);
+          // Les données Amplitude sont dans analyticsData.data
           setAnalytics(analyticsData.success ? analyticsData.data : null);
         } else {
-          console.warn('Erreur lors du chargement des analytics PostHog');
+          const errorText = await analyticsResponse.text();
+          console.error('❌ Erreur lors du chargement des analytics Amplitude:', {
+            status: analyticsResponse.status,
+            statusText: analyticsResponse.statusText,
+            error: errorText
+          });
+          // Ne pas faire échouer le chargement de la page
+          setAnalytics(null);
         }
 
       } catch (err) {
@@ -128,7 +146,7 @@ export default function PropertyMetricsPage() {
     if (session?.user?.role === 'AGENT' && propertyId) {
       fetchData();
     }
-  }, [session, propertyId]);
+  }, [session, status, propertyId]);
 
   // Fonction utilitaire pour formater les prix
   const formatPrice = (price: number) => {
@@ -553,7 +571,7 @@ export default function PropertyMetricsPage() {
               <div className="text-center">
                 <BarChart3 className="w-12 h-12 text-blue-600 mx-auto mb-3" />
                 <h3 className="text-lg font-semibold text-blue-900 mb-2">
-                  Analytics PostHog en cours de chargement...
+                  Analytics Amplitude en cours de chargement...
                 </h3>
                 <p className="text-blue-700 mb-4">
                   Les données d'analytics peuvent prendre quelques minutes à apparaître après les premières visites.

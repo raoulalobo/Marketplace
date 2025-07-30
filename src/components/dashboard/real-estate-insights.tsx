@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { 
   BarChart3, TrendingUp, Users, Clock, MousePointer, 
   Smartphone, Monitor, Tablet, AlertTriangle, 
@@ -69,6 +70,7 @@ interface RealEstateInsightsProps {
 }
 
 export function RealEstateInsights({ propertyId, className = '' }: RealEstateInsightsProps) {
+  const { data: session, status } = useSession();
   const [insights, setInsights] = useState<PropertyInsights | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -76,17 +78,37 @@ export function RealEstateInsights({ propertyId, className = '' }: RealEstateIns
 
   useEffect(() => {
     const fetchInsights = async () => {
+      // Attendre que la session soit chargée
+      if (status === 'loading') {
+        return;
+      }
+
+      if (status === 'unauthenticated') {
+        setError('Authentification requise');
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
+        console.log('🔍 Chargement insights PostHog pour propriété:', propertyId);
         const response = await fetch(`/api/properties/${propertyId}/posthog-insights`);
         
         if (!response.ok) {
-          throw new Error('Erreur lors du chargement des insights');
+          const errorText = await response.text();
+          console.error('❌ Erreur API posthog-insights:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorText
+          });
+          throw new Error(`Erreur lors du chargement des insights: ${response.status}`);
         }
         
         const data = await response.json();
+        console.log('📈 Insights PostHog récupérés:', data);
         setInsights(data.success ? data.data : null);
       } catch (err) {
+        console.error('💥 Erreur lors du chargement des insights PostHog:', err);
         setError(err instanceof Error ? err.message : 'Erreur inconnue');
       } finally {
         setLoading(false);
@@ -94,7 +116,7 @@ export function RealEstateInsights({ propertyId, className = '' }: RealEstateIns
     };
 
     fetchInsights();
-  }, [propertyId]);
+  }, [propertyId, status, session]);
 
   if (loading) {
     return (

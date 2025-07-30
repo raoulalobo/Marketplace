@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { VisitRequestModal } from '@/components/modals/visit-request-modal';
 import { ReportModal } from '@/components/modals/report-modal';
 import { ShareModal } from '@/components/modals/share-modal';
+import { SocialShareModal } from '@/components/modals/social-share-modal';
 import { AuthRequiredModal } from '@/components/modals/auth-required-modal';
 import { ToastContainer, useToast } from '@/components/ui/toast';
 import { useFavorite } from '@/hooks/use-favorite';
@@ -90,6 +91,7 @@ export default function PropertyDetailPage() {
   const [showVisitModal, setShowVisitModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showSocialShareModal, setShowSocialShareModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authAction, setAuthAction] = useState<'visit' | 'favorite' | 'report'>('visit');
   const [loading, setLoading] = useState(true);
@@ -246,6 +248,12 @@ export default function PropertyDetailPage() {
     setShowShareModal(true);
   };
 
+  const handleSocialShare = () => {
+    // Tracker l'interaction de partage social
+    timeTracking.trackEvent('social_share_clicked');
+    setShowSocialShareModal(true);
+  };
+
   const handleFavorite = async () => {
     // Tracker l'interaction avec intention d'achat modérée
     const action = isFavorite ? 'remove' : 'add';
@@ -286,6 +294,31 @@ export default function PropertyDetailPage() {
     toast.success(
       'Signalement envoyé',
       'Votre signalement a été transmis à notre équipe de modération.'
+    );
+  };
+
+  const handleSocialShareSuccess = (result: any) => {
+    // Tracker le partage social réussi
+    timeTracking.trackEvent('social_share_success', { 
+      platforms: result.data?.successfulPosts,
+      ayrshareId: result.data?.ayrshareId 
+    });
+    
+    toast.success(
+      'Publication réussie !',
+      `Votre propriété a été publiée sur ${result.data?.successfulPosts} plateforme(s).`
+    );
+  };
+
+  const handleSocialShareError = (error: string) => {
+    // Tracker l'erreur de partage social
+    timeTracking.trackEvent('social_share_error', { 
+      error: error 
+    });
+    
+    toast.error(
+      'Erreur de publication',
+      error
     );
   };
 
@@ -483,6 +516,18 @@ export default function PropertyDetailPage() {
                   Partager
                 </Button>
                 
+                {/* Bouton partage social réservé aux agents */}
+                {session?.user?.role === 'AGENT' && (
+                  <Button 
+                    onClick={handleSocialShare} 
+                    variant="outline" 
+                    className="w-full border-green-200 text-green-700 hover:bg-green-50"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Publier sur réseaux sociaux
+                  </Button>
+                )}
+                
                 <Button 
                   onClick={handleReport}
                   variant="outline" 
@@ -571,6 +616,17 @@ export default function PropertyDetailPage() {
             onClose={() => setShowShareModal(false)}
             property={property}
           />
+
+          {/* Modal de partage social réservé aux agents */}
+          {session?.user?.role === 'AGENT' && (
+            <SocialShareModal
+              isOpen={showSocialShareModal}
+              onClose={() => setShowSocialShareModal(false)}
+              property={property}
+              onSuccess={handleSocialShareSuccess}
+              onError={handleSocialShareError}
+            />
+          )}
 
           {/* Modal de connexion requise */}
           <AuthRequiredModal
