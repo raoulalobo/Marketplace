@@ -113,7 +113,8 @@ async function initializeAmplitude() {
     return true;
     
   } catch (error) {
-    console.warn('⚠️ Erreur initialisation Amplitude - mode démo activé:', error.message);
+    const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+    console.warn('⚠️ Erreur initialisation Amplitude - mode démo activé:', errorMessage);
     amplitudeAvailable = false;
     return false;
   }
