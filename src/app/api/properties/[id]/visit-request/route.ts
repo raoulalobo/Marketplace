@@ -15,7 +15,7 @@ const visitRequestSchema = z.object({
 // POST /api/properties/[id]/visit-request - Créer une demande de visite
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier l'authentification
@@ -36,7 +36,7 @@ export async function POST(
       );
     }
 
-    const propertyId = params.id;
+    const propertyId = (await params).id;
 
     // Vérifier que la propriété existe et est active
     const property = await prisma.property.findUnique({

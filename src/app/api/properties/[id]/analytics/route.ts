@@ -39,7 +39,7 @@ interface PropertyAnalytics {
 // GET /api/properties/[id]/analytics - Analytics spécifiques à une propriété
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier l'authentification
@@ -52,7 +52,7 @@ export async function GET(
       );
     }
 
-    const propertyId = params.id;
+    const propertyId = (await params).id;
     
     // Vérifier que la propriété existe et appartient à l'agent connecté
     const property = await prisma.property.findUnique({

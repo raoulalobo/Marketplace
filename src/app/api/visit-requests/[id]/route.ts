@@ -16,7 +16,7 @@ const updateVisitRequestSchema = z.object({
 // GET /api/visit-requests/[id] - Récupérer une demande de visite
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier l'authentification
@@ -29,7 +29,7 @@ export async function GET(
       );
     }
 
-    const visitRequestId = params.id;
+    const visitRequestId = (await params).id;
 
     // Récupérer la demande de visite
     const visitRequest = await prisma.visitRequest.findUnique({
@@ -114,7 +114,7 @@ export async function GET(
 // PATCH /api/visit-requests/[id] - Modifier une demande de visite (acheteur seulement)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier l'authentification
@@ -127,7 +127,7 @@ export async function PATCH(
       );
     }
 
-    const visitRequestId = params.id;
+    const visitRequestId = (await params).id;
 
     // Vérifier que la demande existe et appartient à l'utilisateur
     const existingRequest = await prisma.visitRequest.findUnique({
@@ -241,7 +241,7 @@ export async function PATCH(
 // DELETE /api/visit-requests/[id] - Supprimer définitivement une demande (rare)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier l'authentification
@@ -254,7 +254,7 @@ export async function DELETE(
       );
     }
 
-    const visitRequestId = params.id;
+    const visitRequestId = (await params).id;
 
     // Vérifier que la demande existe
     const existingRequest = await prisma.visitRequest.findUnique({

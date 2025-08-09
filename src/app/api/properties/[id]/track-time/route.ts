@@ -58,10 +58,10 @@ function getClientIp(request: NextRequest): string {
 // POST /api/properties/[id]/track-time - Démarrer une session de tracking
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: propertyId } = params;
+    const { id: propertyId  } = await params;
     
     // Vérifier que la propriété existe
     const property = await prisma.property.findUnique({
@@ -130,10 +130,10 @@ export async function POST(
 // PUT /api/properties/[id]/track-time - Heartbeat/mise à jour de session
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: propertyId } = params;
+    const { id: propertyId  } = await params;
     
     // Valider les données d'entrée
     const body = await request.json();
@@ -189,10 +189,10 @@ export async function PUT(
 // DELETE /api/properties/[id]/track-time - Terminer une session
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: propertyId } = params;
+    const { id: propertyId  } = await params;
     
     // Récupérer les paramètres de la query string pour DELETE
     const url = new URL(request.url);
