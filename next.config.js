@@ -26,7 +26,7 @@ const nextConfig = {
     }
     return config;
   },
-  // Configuration pour les packages externes du serveur (Next.js 15)
+  // Configuration pour les packages externes du serveur (Next.js 15 - nom mis à jour)
   serverExternalPackages: ['@prisma/client'],
   // Désactiver le linting strict pendant le build pour permettre le déploiement
   eslint: {

@@ -16,7 +16,7 @@ const respondVisitRequestSchema = z.object({
 // POST /api/visit-requests/[id]/respond - Agent répond à une demande de visite
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier l'authentification
@@ -37,7 +37,7 @@ export async function POST(
       );
     }
 
-    const visitRequestId = params.id;
+    const visitRequestId = (await params).id;
 
     // Vérifier que la demande existe et que l'agent est propriétaire de la propriété
     const existingRequest = await prisma.visitRequest.findUnique({

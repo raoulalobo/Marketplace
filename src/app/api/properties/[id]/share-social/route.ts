@@ -163,10 +163,10 @@ async function publishToAyrshare(
 // POST /api/properties/[id]/share-social - Publier une propriété sur les réseaux sociaux
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: propertyId } = params;
+    const { id: propertyId  } = await params;
     
     // Vérifier l'authentification et le rôle agent
     const session = await getServerSession(authOptions);

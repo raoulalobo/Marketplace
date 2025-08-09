@@ -97,10 +97,10 @@ async function trackPropertyView(
 // GET /api/properties/[id] - Récupérer une propriété spécifique
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Récupérer la propriété avec toutes les informations
     const property = await prisma.property.findUnique({
@@ -172,7 +172,7 @@ export async function GET(
 // PUT /api/properties/[id] - Mettre à jour une propriété
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier l'authentification
@@ -185,7 +185,7 @@ export async function PUT(
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // Vérifier que la propriété existe
     const existingProperty = await prisma.property.findUnique({
@@ -257,7 +257,7 @@ export async function PUT(
 // DELETE /api/properties/[id] - Supprimer une propriété
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier l'authentification
@@ -270,7 +270,7 @@ export async function DELETE(
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // Vérifier que la propriété existe
     const existingProperty = await prisma.property.findUnique({

@@ -26,7 +26,7 @@ const REPORT_MOTIFS = {
 // POST /api/properties/[id]/reports - Créer un signalement
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier l'authentification
@@ -39,7 +39,7 @@ export async function POST(
       );
     }
 
-    const propertyId = params.id;
+    const propertyId = (await params).id;
 
     // Vérifier que la propriété existe
     const property = await prisma.property.findUnique({
@@ -170,7 +170,7 @@ export async function POST(
 // GET /api/properties/[id]/reports - Récupérer les signalements d'une propriété (admin seulement)
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier l'authentification
@@ -191,7 +191,7 @@ export async function GET(
       );
     }
 
-    const propertyId = params.id;
+    const propertyId = (await params).id;
 
     // Récupérer tous les signalements pour cette propriété
     const reports = await prisma.report.findMany({

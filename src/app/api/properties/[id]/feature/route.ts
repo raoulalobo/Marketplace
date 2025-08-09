@@ -15,7 +15,7 @@ const featurePropertySchema = z.object({
 // POST /api/properties/[id]/feature - Mettre en avant ou retirer une propriété
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier l'authentification
@@ -29,7 +29,7 @@ export async function POST(
     }
 
     // Vérifier les permissions (seulement admins et agents propriétaires)
-    const propertyId = params.id;
+    const propertyId = (await params).id;
     
     // Récupérer la propriété
     const property = await prisma.property.findUnique({
@@ -116,10 +116,10 @@ export async function POST(
 // GET /api/properties/[id]/feature - Récupérer le statut de mise en avant
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const propertyId = params.id;
+    const propertyId = (await params).id;
     
     // Récupérer le statut de la propriété
     const property = await prisma.property.findUnique({

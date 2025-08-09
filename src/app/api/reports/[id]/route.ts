@@ -15,7 +15,7 @@ const updateReportSchema = z.object({
 // GET /api/reports/[id] - Récupérer un signalement spécifique
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier l'authentification
@@ -28,7 +28,7 @@ export async function GET(
       );
     }
 
-    const reportId = params.id;
+    const reportId = (await params).id;
 
     // Récupérer le signalement
     const report = await prisma.report.findUnique({
@@ -138,7 +138,7 @@ export async function GET(
 // PATCH /api/reports/[id] - Mettre à jour le statut d'un signalement (admin seulement)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier l'authentification
@@ -159,7 +159,7 @@ export async function PATCH(
       );
     }
 
-    const reportId = params.id;
+    const reportId = (await params).id;
 
     // Vérifier que le signalement existe
     const existingReport = await prisma.report.findUnique({
@@ -270,7 +270,7 @@ export async function PATCH(
 // DELETE /api/reports/[id] - Supprimer un signalement (admin seulement, rare)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier l'authentification
@@ -291,7 +291,7 @@ export async function DELETE(
       );
     }
 
-    const reportId = params.id;
+    const reportId = (await params).id;
 
     // Vérifier que le signalement existe
     const existingReport = await prisma.report.findUnique({
