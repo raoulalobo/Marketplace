@@ -15,6 +15,7 @@ const updatePropertySchema = z.object({
   adresse: z.string().min(10).optional(),
   ville: z.string().min(1).optional(),
   fraisVisite: z.number().min(0).optional(),
+  isActive: z.boolean().optional(),
   photos: z.array(z.string()).min(1).max(5).optional(),
   videos: z.array(z.string()).max(5).optional()
 });

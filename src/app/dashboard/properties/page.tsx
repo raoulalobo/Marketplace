@@ -77,7 +77,7 @@ const typeLabels = {
 };
 
 export default function AgentPropertiesPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
 
   // États pour les données et filtres
@@ -167,6 +167,28 @@ export default function AgentPropertiesPage() {
     return `${minutes}m ${remainingSeconds}s`;
   };
 
+  // Attendre que la session soit chargée avant de vérifier les permissions
+  if (status === 'loading') {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden animate-pulse">
+            <div className="h-48 bg-gray-200"></div>
+            <div className="p-4">
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
+              <div className="h-6 bg-gray-200 rounded w-16 mb-4"></div>
+              <div className="flex gap-2">
+                <div className="h-8 bg-gray-200 rounded flex-1"></div>
+                <div className="h-8 bg-gray-200 rounded flex-1"></div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   // Vérifier les permissions
   if (session?.user?.role !== 'AGENT') {
     return (
@@ -180,7 +202,7 @@ export default function AgentPropertiesPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div>
       {/* En-tête */}
       <div className="flex items-center justify-between mb-8">
         <div>

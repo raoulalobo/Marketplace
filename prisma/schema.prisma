@@ -54,6 +54,7 @@ model Property {
   prix            Int              // Prix en Francs CFA
   superficie      Float?           // Superficie en m²
   adresse         String
+  ville           String?          // Ville de la propriété
   fraisVisite     Int?             // Frais de visite en Francs CFA
   isActive        Boolean          @default(true)
   isFeatured      Boolean          @default(false)  // Propriété mise en avant

@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { StatsCard, QuickActions, PerformanceMetrics, PropertyDistribution } from './dashboard-stats';
+import { StatsCard, QuickActions, PropertyDistribution } from './dashboard-stats';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Home,
@@ -304,19 +304,6 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ user }) => {
                 propertiesByCity={stats.propertiesByCity}
                 propertiesByType={stats.propertiesByType}
               />
-            </div>
-          </div>
-
-          {/* Section Prix Moyen et Activité */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Métrique Prix Moyen */}
-            <div className="lg:col-span-1">
-              <PerformanceMetrics stats={stats} />
-            </div>
-
-            {/* Activité Récente */}
-            <div className="lg:col-span-2">
-              <RecentVisitRequests visitRequests={visitRequests} />
             </div>
           </div>
         </div>

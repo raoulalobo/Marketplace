@@ -10,7 +10,7 @@ import { z } from 'zod';
 import { 
   ArrowLeft, Upload, X, Image as ImageIcon, Video, 
   Home, MapPin, Briefcase, Grid, DollarSign, Ruler,
-  Save, Eye
+  Save, Eye, CheckCircle
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -229,29 +229,62 @@ export default function AddPropertyPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Button 
-              variant="outline" 
-              onClick={() => router.back()}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Retour
-            </Button>
-            <h1 className="text-xl font-semibold text-gray-900">Ajouter une nouvelle propriété</h1>
-          </div>
-        </div>
-      </div>
-
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            {/* Informations générales */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">Informations générales</h2>
+          {/* En-tête harmonisé avec style centré */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Ajouter une propriété
+            </h1>
+            <p className="text-gray-600 mb-6">
+              Créez une nouvelle annonce immobilière
+            </p>
+            
+            {/* Barre d'actions horizontale - adaptée pour l'ajout */}
+            <div className="flex items-center justify-center gap-3 flex-wrap sm:gap-4">
+              <Button 
+                variant="outline" 
+                onClick={() => router.back()}
+                className="flex items-center gap-2 min-w-24"
+                size="sm"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Retour
+              </Button>
+              
+              <Button 
+                variant="outline"
+                className="flex items-center gap-2 min-w-32"
+                size="sm"
+                disabled
+                title="Prévisualisation disponible après création"
+              >
+                <Eye className="w-4 h-4" />
+                Prévisualiser
+              </Button>
+              
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                className="flex items-center gap-2 min-w-32 bg-green-600 hover:bg-green-700 text-white"
+                title="La propriété sera active par défaut"
+              >
+                <CheckCircle className="w-4 h-4" />
+                Active par défaut
+              </Button>
+            </div>
+          </div>
+
+          {/* Formulaire principal - structure harmonisée */}
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 p-8">
+              {/* Section: Informations générales */}
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+                  <Home className="w-5 h-5 text-blue-600" />
+                  Informations générales
+                </h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Titre */}
@@ -343,13 +376,15 @@ export default function AddPropertyPage() {
                   )}
                 </div>
               </div>
-            </div>
+              </div>
 
-            {/* Caractéristiques financières */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">Caractéristiques et prix</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Section: Caractéristiques et prix */}
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                  Caractéristiques et prix
+                </h2>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Prix */}
                 <div>
                   <Label htmlFor="prix">Prix de vente (FCFA) *</Label>
@@ -404,13 +439,13 @@ export default function AddPropertyPage() {
                   )}
                 </div>
               </div>
-            </div>
 
-            {/* Upload de fichiers */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">Photos et vidéos</h2>
-              
-              {/* Zone de drop */}
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                  Photos et vidéos
+                </h2>
+                
+                {/* Zone de drop */}
               <div
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
@@ -475,36 +510,48 @@ export default function AddPropertyPage() {
                   </div>
                 </div>
               )}
-            </div>
+              </div>
+              </div>
 
-            {/* Actions */}
-            <div className="flex gap-4 justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.back()}
-              >
-                Annuler
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Publication...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Publier la propriété
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
+              {/* Actions de sauvegarde */}
+              <div className="border-t border-gray-200 pt-8">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-500">
+                    * Champs obligatoires
+                  </div>
+                  
+                  <div className="flex gap-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => router.back()}
+                      disabled={isSubmitting}
+                    >
+                      Annuler
+                    </Button>
+                    
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="min-w-32"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Publication...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 mr-2" />
+                          Publier
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
