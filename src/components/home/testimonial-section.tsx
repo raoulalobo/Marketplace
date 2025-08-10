@@ -23,8 +23,7 @@ export function TestimonialSection() {
 
           {/* Témoignage principal */}
           <blockquote className="text-2xl md:text-3xl font-light leading-relaxed mb-8">
-            "Grâce à cette plateforme, j'ai trouvé ma villa de rêve à Bonapriso en seulement 2 semaines. 
-            Un service professionnel et des biens de qualité vérifiés. Je recommande vivement !"
+            "Avant toute chose : mes plus sincères félicitations. Ce que je vois ici, à première vue, révèle une vision claire et une exécution remarquable. Excellent travail. Continue à penser différemment"
           </blockquote>
 
           {/* Étoiles */}
@@ -36,37 +35,13 @@ export function TestimonialSection() {
 
           {/* Informations du client */}
           <div className="flex items-center justify-center gap-6">
-            <div className="relative">
-              <Image
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80"
-                alt="Amadou Njoya"
-                width={80}
-                height={80}
-                className="rounded-full border-4 border-yellow-400"
-              />
-            </div>
             <div className="text-left">
-              <div className="text-xl font-semibold">Amadou Njoya</div>
-              <div className="text-blue-200">Entrepreneur</div>
-              <div className="text-blue-300 text-sm">Douala, Cameroun</div>
+              <div className="text-xl font-semibold">TANKEU Duplex</div>
+              <div className="text-blue-200">Chef agence FIGEC Mimboman</div>
+              <div className="text-blue-300 text-sm">Yaounde, Cameroun</div>
             </div>
           </div>
 
-          {/* Statistiques de satisfaction */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 pt-16 border-t border-blue-800">
-            <div className="text-center">
-              <div className="text-4xl font-bold text-yellow-400 mb-2">98%</div>
-              <div className="text-blue-200">Clients satisfaits</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-yellow-400 mb-2">4.8/5</div>
-              <div className="text-blue-200">Note moyenne</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-yellow-400 mb-2">14j</div>
-              <div className="text-blue-200">Délai moyen de vente</div>
-            </div>
-          </div>
         </div>
       </div>
     </section>

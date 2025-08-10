@@ -367,19 +367,19 @@ export function SearchSection() {
         {/* Statistiques en bas */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 text-center">
           <div>
-            <div className="text-3xl font-bold text-blue-600 mb-2">500+</div>
+            <div className="text-3xl font-bold text-blue-600 mb-2">20+</div>
             <div className="text-gray-600">Biens disponibles</div>
           </div>
           <div>
-            <div className="text-3xl font-bold text-green-600 mb-2">15+</div>
+            <div className="text-3xl font-bold text-green-600 mb-2">03+</div>
             <div className="text-gray-600">Villes couvertes</div>
           </div>
           <div>
-            <div className="text-3xl font-bold text-yellow-600 mb-2">200+</div>
+            <div className="text-3xl font-bold text-yellow-600 mb-2">50+</div>
             <div className="text-gray-600">Clients satisfaits</div>
           </div>
           <div>
-            <div className="text-3xl font-bold text-purple-600 mb-2">50+</div>
+            <div className="text-3xl font-bold text-purple-600 mb-2">10+</div>
             <div className="text-gray-600">Agents partenaires</div>
           </div>
         </div>

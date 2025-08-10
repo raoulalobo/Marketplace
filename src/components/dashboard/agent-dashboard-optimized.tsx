@@ -9,12 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Home,
   AlertTriangle, 
-  CheckCircle, 
-  Clock, 
-  Zap, 
   TrendingUp, 
   Eye,
-  Bell,
   MessageSquare
 } from 'lucide-react';
 
@@ -126,122 +122,6 @@ const useDashboardData = () => {
   return { stats, visitRequests, loading, error, refetch: fetchStats };
 };
 
-// Composant pour les alertes et insights
-const DashboardAlerts: React.FC<{ stats: AgentStats }> = ({ stats }) => {
-  const alerts = useMemo(() => {
-    const items = [];
-
-    // Alertes urgentes
-    if (stats.pendingVisitRequests > 5) {
-      items.push({
-        type: 'urgent',
-        icon: <AlertTriangle className="w-5 h-5 text-red-600" />,
-        title: 'Action requise',
-        message: `${stats.pendingVisitRequests} demandes de visite en attente depuis plus de 24h.`,
-        action: 'Traiter maintenant',
-        color: 'red',
-      });
-    }
-
-    // Opportunités commerciales
-    if (stats.totalViews > 100 && stats.conversionRate < 3) {
-      items.push({
-        type: 'opportunity',
-        icon: <Zap className="w-5 h-5 text-orange-600" />,
-        title: 'Opportunité détectée',
-        message: 'Beaucoup de vues mais peu de conversions. Pensez à ajuster vos prix ou descriptions.',
-        action: 'Optimiser',
-        color: 'orange',
-      });
-    }
-
-    // Succès récents
-    if (stats.propertiesSoldThisMonth > 0) {
-      items.push({
-        type: 'success',
-        icon: <CheckCircle className="w-5 h-5 text-green-600" />,
-        title: 'Félicitations !',
-        message: `${stats.propertiesSoldThisMonth} ${stats.propertiesSoldThisMonth === 1 ? 'vente ce mois' : 'ventes ce mois'}. Excellent travail !`,
-        action: 'Voir détails',
-        color: 'green',
-      });
-    }
-
-    // Rappels et suivis
-    items.push({
-      type: 'reminder',
-      icon: <Clock className="w-5 h-5 text-blue-600" />,
-      title: 'Rappels du jour',
-      message: 'Relancer 3 clients inactifs, mettre à jour 2 annonces, répondre aux messages.',
-      action: 'Planifier',
-      color: 'blue',
-    });
-
-    // Tendances marché
-    if (stats.propertiesByType.length > 0) {
-      const topType = stats.propertiesByType[0];
-      items.push({
-        type: 'trend',
-        icon: <TrendingUp className="w-5 h-5 text-purple-600" />,
-        title: 'Tendance marché',
-        message: `Les ${topType.type.toLowerCase()} sont en forte demande ce mois (+15%).`,
-        action: 'En savoir plus',
-        color: 'purple',
-      });
-    }
-
-    // Performance personnelle
-    items.push({
-      type: 'performance',
-      icon: <Eye className="w-5 h-5 text-indigo-600" />,
-      title: 'Votre performance',
-      message: `Vous êtes dans le top ${stats.conversionRate > 5 ? '20%' : '40%'} des agents cette semaine !`,
-      action: 'Voir classement',
-      color: 'indigo',
-    });
-
-    return items;
-  }, [stats]);
-
-  const colorClasses: Record<string, string> = {
-    red: 'bg-red-50 border-red-200 text-red-800',
-    orange: 'bg-orange-50 border-orange-200 text-orange-800',
-    green: 'bg-green-50 border-green-200 text-green-800',
-    blue: 'bg-blue-50 border-blue-200 text-blue-800',
-    purple: 'bg-purple-50 border-purple-200 text-purple-800',
-    indigo: 'bg-indigo-50 border-indigo-200 text-indigo-800',
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Bell className="w-5 h-5" />
-          Alertes et Insights
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {alerts.map((alert, index) => (
-            <div
-              key={index}
-              className={`p-4 border rounded-lg ${colorClasses[alert.color]}`}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                {alert.icon}
-                <span className="font-medium">{alert.title}</span>
-              </div>
-              <p className="text-sm mb-2">{alert.message}</p>
-              <button className="text-xs font-medium hover:underline">
-                {alert.action}
-              </button>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
 
 // Composant pour les demandes de visite récentes
 const RecentVisitRequests: React.FC<{ visitRequests: VisitRequest[] }> = ({ visitRequests }) => {
@@ -370,7 +250,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ user }) => {
 
   return (
     <ErrorBoundary>
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 space-y-6 sm:space-y-8 lg:space-y-10">
         {/* En-tête */}
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -385,7 +265,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ user }) => {
         <QuickActions />
 
         {/* Statistiques principales */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           <StatsCard
             title="Total Biens"
             value={stats.totalProperties}
@@ -412,27 +292,32 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ user }) => {
           />
         </div>
 
-        {/* Deux colonnes pour le reste */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Colonne de gauche (2/3) */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Métriques de performance */}
-            <PerformanceMetrics stats={stats} />
-
-            {/* Distribution des propriétés */}
-            <PropertyDistribution
-              propertiesByCity={stats.propertiesByCity}
-              propertiesByType={stats.propertiesByType}
-            />
+        {/* Layout moderne en sections */}
+        <div className="space-y-8">
+          {/* Section Analytics - Distribution des propriétés */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">Analytics</h2>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <PropertyDistribution
+                propertiesByCity={stats.propertiesByCity}
+                propertiesByType={stats.propertiesByType}
+              />
+            </div>
           </div>
 
-          {/* Colonne de droite (1/3) */}
-          <div className="space-y-6">
-            {/* Alertes et insights */}
-            <DashboardAlerts stats={stats} />
+          {/* Section Prix Moyen et Activité */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Métrique Prix Moyen */}
+            <div className="lg:col-span-1">
+              <PerformanceMetrics stats={stats} />
+            </div>
 
-            {/* Demandes de visite récentes */}
-            <RecentVisitRequests visitRequests={visitRequests} />
+            {/* Activité Récente */}
+            <div className="lg:col-span-2">
+              <RecentVisitRequests visitRequests={visitRequests} />
+            </div>
           </div>
         </div>
       </div>

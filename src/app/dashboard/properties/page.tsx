@@ -14,13 +14,10 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { SessionsMetric, TimeMetric, ScrollMetric, BounceMetric } from '@/components/dashboard/metric-card';
+// Métriques supprimées pour optimiser l'interface
 import dynamic from 'next/dynamic';
 
-const ClientMetricsHelpSection = dynamic(() => import('@/components/dashboard/client-metrics-help-section'), {
-  ssr: false,
-  loading: () => <div>Chargement de l'aide...</div>
-});
+// Composant d'aide supprimé pour simplifier l'interface
 
 // Interfaces pour les données
 interface PropertyStats {
@@ -317,114 +314,99 @@ export default function AgentPropertiesPage() {
         </div>
       ) : (
         <>
-          {/* Section d'aide pour interpréter les métriques */}
-          <ClientMetricsHelpSection />
+          {/* Section simplifiée - aide supprimée pour optimiser l'interface */}
 
-          {/* Vue en cartes des propriétés */}
-          <div className="space-y-6">
+          {/* Vue en cartes des propriétés - Layout Grid Optimisé */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {properties.map((property) => {
               const TypeIcon = typeIcons[property.type];
               const firstImage = property.medias.find(m => m.type === 'PHOTO');
               
               return (
-                <div key={property.id} className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-                  {/* En-tête de la propriété */}
-                  <div className="p-6 border-b border-gray-200">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="flex-shrink-0">
-                          {firstImage ? (
-                            <PropertyImage
-                              src={firstImage.url}
-                              alt={property.titre}
-                              width={80}
-                              height={80}
-                              className="h-20 w-20 rounded-lg object-cover"
-                              propertyType={property.type}
-                            />
-                          ) : (
-                            <div className="h-20 w-20 bg-gray-200 rounded-lg flex items-center justify-center">
-                              <TypeIcon className="w-8 h-8 text-gray-400" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-lg font-semibold text-gray-900 max-w-md truncate">
-                              {property.titre}
-                            </h3>
-                            {property.isActive ? (
-                              <Badge className="bg-green-100 text-green-800">Active</Badge>
-                            ) : (
-                              <Badge variant="secondary">Inactive</Badge>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
-                            <Badge variant="secondary">{typeLabels[property.type]}</Badge>
-                            <span>{property.superficie} m²</span>
-                            <span className="font-medium text-gray-900">{formatPrice(property.prix)}</span>
-                          </div>
-                          <div className="text-sm text-gray-500 max-w-md truncate">
-                            <MapPin className="w-4 h-4 inline mr-1" />
-                            {property.adresse}
-                          </div>
-                        </div>
+                <div key={property.id} className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-200 hover:-translate-y-1 h-fit">
+                  {/* Image principale */}
+                  <div className="relative">
+                    {firstImage ? (
+                      <PropertyImage
+                        src={firstImage.url}
+                        alt={property.titre}
+                        width={400}
+                        height={200}
+                        className="w-full h-48 object-cover"
+                        propertyType={property.type}
+                      />
+                    ) : (
+                      <div className="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                        <TypeIcon className="w-16 h-16 text-gray-400" />
                       </div>
-                      
-                      {/* Actions */}
-                      <div className="flex items-center gap-2">
-                        <Button
-                          asChild
-                          size="sm"
-                          variant="outline"
-                          className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                        >
-                          <Link href={`/dashboard/properties/${property.id}`}>
-                            <BarChart3 className="w-4 h-4 mr-1" />
-                            Analytics
-                          </Link>
-                        </Button>
-                        <Button asChild size="sm" variant="outline">
-                          <Link href={`/properties/${property.id}`}>
-                            <Eye className="w-4 h-4 mr-1" />
-                            Voir
-                          </Link>
-                        </Button>
-                        <Button asChild size="sm" variant="outline">
-                          <Link href={`/properties/${property.id}/edit`}>
-                            <Edit className="w-4 h-4 mr-1" />
-                            Modifier
-                          </Link>
-                        </Button>
-                      </div>
+                    )}
+                    <div className="absolute top-3 right-3">
+                      <Badge className={property.isActive ? 'bg-green-500 text-white' : 'bg-gray-500 text-white'}>
+                        {property.isActive ? '✓ Active' : '⏸ Inactive'}
+                      </Badge>
+                    </div>
+                    <div className="absolute top-3 left-3">
+                      <Badge variant="secondary" className="bg-white/90 text-gray-700">
+                        <TypeIcon className="w-3 h-3 mr-1" />
+                        {typeLabels[property.type]}
+                      </Badge>
                     </div>
                   </div>
-
-                  {/* Métriques avec explications */}
-                  <div className="p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <SessionsMetric value={property.stats.totalSessions} />
-                      <TimeMetric value={property.stats.averageTimeSpent} />
-                      <ScrollMetric value={Math.round(property.stats.averageScrollDepth)} />
-                      <BounceMetric value={Math.round(property.stats.bounceRate)} />
+                  
+                  {/* Contenu compact */}
+                  <div className="p-4">
+                    {/* Titre et info principales */}
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                      {property.titre}
+                    </h3>
+                    
+                    <div className="flex items-center text-sm text-gray-500 mb-2">
+                      <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
+                      <span className="truncate">{property.adresse}</span>
                     </div>
                     
-                    {/* Statistiques supplémentaires */}
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <div className="grid grid-cols-3 gap-4 text-center">
-                        <div>
-                          <div className="text-2xl font-bold text-blue-600">{property.stats.viewsCount}</div>
-                          <div className="text-sm text-gray-600">Vues totales</div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm text-gray-600">{property.superficie} m²</span>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-green-600">
+                          {formatPrice(property.prix)}
                         </div>
-                        <div>
-                          <div className="text-2xl font-bold text-green-600">{property.stats.visitRequestsCount}</div>
-                          <div className="text-sm text-gray-600">Demandes de visite</div>
-                        </div>
-                        <div>
-                          <div className="text-2xl font-bold text-purple-600">{property._count.favorites}</div>
-                          <div className="text-sm text-gray-600">Favoris</div>
+                        <div className="text-xs text-gray-500">
+                          {formatPrice(Math.round(property.prix / property.superficie))}/m²
                         </div>
                       </div>
+                    </div>
+                    
+                    {/* Statistiques compactes */}
+                    <div className="grid grid-cols-3 gap-2 mb-4 text-center">
+                      <div>
+                        <div className="text-lg font-bold text-blue-600">{property.stats.viewsCount}</div>
+                        <div className="text-xs text-gray-500">Vues</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-green-600">{property.stats.visitRequestsCount}</div>
+                        <div className="text-xs text-gray-500">Visites</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-purple-600">{property._count.favorites}</div>
+                        <div className="text-xs text-gray-500">Favoris</div>
+                      </div>
+                    </div>
+                    
+                    {/* Actions compactes */}
+                    <div className="flex gap-2">
+                      <Button asChild size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700">
+                        <Link href={`/properties/${property.id}`}>
+                          <Eye className="w-4 h-4 mr-1" />
+                          Voir
+                        </Link>
+                      </Button>
+                      <Button asChild size="sm" variant="outline" className="flex-1">
+                        <Link href={`/properties/${property.id}/edit`}>
+                          <Edit className="w-4 h-4 mr-1" />
+                          Modifier
+                        </Link>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -434,7 +416,7 @@ export default function AgentPropertiesPage() {
 
           {/* Pagination */}
           {pagination.totalPages > 1 && (
-            <div className="flex items-center justify-between mt-6">
+            <div className="flex items-center justify-between mt-8">
               <div className="text-sm text-gray-700">
                 Affichage de {((pagination.page - 1) * pagination.limit) + 1} à{' '}
                 {Math.min(pagination.page * pagination.limit, pagination.total)} sur{' '}

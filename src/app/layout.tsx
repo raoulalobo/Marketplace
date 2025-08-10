@@ -25,9 +25,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <PostHogProvider>
-            <div className="min-h-screen flex flex-col">
+            <div className="layout-container">
               <Navbar />
-              <main className="flex-1">
+              <main className="main-content overflow-auto">
                 {children}
               </main>
               <Footer />

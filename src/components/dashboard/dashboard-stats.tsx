@@ -8,10 +8,8 @@ import {
   MessageSquare, 
   TrendingUp, 
   DollarSign, 
-  Users,
   MapPin,
-  Building,
-  Clock
+  Building
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -48,14 +46,14 @@ export const StatsCard: React.FC<StatsCardProps> = ({
   }, [value]);
 
   return (
-    <Card className={className}>
+    <Card className={`group hover:shadow-lg transition-all duration-200 hover:-translate-y-1 ${className}`}>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex-1">
             <p className="text-sm font-medium text-gray-600 mb-1">
               {title}
             </p>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
               {formattedValue}
             </p>
             {description && (
@@ -66,7 +64,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
             {trend && (
               <div className="flex items-center mt-2">
                 <TrendingUp 
-                  className={`w-4 h-4 mr-1 ${
+                  className={`w-4 h-4 mr-1 transition-transform group-hover:scale-110 ${
                     trend.isPositive ? 'text-green-600' : 'text-red-600'
                   }`}
                 />
@@ -78,8 +76,10 @@ export const StatsCard: React.FC<StatsCardProps> = ({
               </div>
             )}
           </div>
-          <div className="p-3 bg-blue-50 rounded-lg">
-            {icon}
+          <div className="p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl group-hover:from-blue-100 group-hover:to-blue-200 transition-all duration-200">
+            <div className="group-hover:scale-110 transition-transform duration-200">
+              {icon}
+            </div>
           </div>
         </div>
       </CardContent>
@@ -152,43 +152,22 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
 
 interface PerformanceMetricsProps {
   stats: {
-    conversionRate: number;
     avgPrice: number;
-    marketAvgPrice: number;
-    totalViews: number;
   };
 }
 
 export const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({ stats }) => {
   const metrics = useMemo(() => [
     {
-      title: 'Taux de conversion',
-      value: `${stats.conversionRate.toFixed(1)}%`,
-      icon: <TrendingUp className="w-5 h-5 text-green-600" />,
-      description: 'Visites → Demandes',
-    },
-    {
       title: 'Prix moyen',
       value: formatCurrency(stats.avgPrice),
       icon: <DollarSign className="w-5 h-5 text-blue-600" />,
-      description: 'Par rapport au marché',
-    },
-    {
-      title: 'Performance marché',
-      value: `${((stats.avgPrice / stats.marketAvgPrice) * 100).toFixed(0)}%`,
-      icon: <MapPin className="w-5 h-5 text-purple-600" />,
-      description: 'vs moyenne marché',
-    },
-    {
-      title: 'Vues totales',
-      value: stats.totalViews.toLocaleString('fr-FR'),
-      icon: <Eye className="w-5 h-5 text-indigo-600" />,
-      description: 'Depuis le début',
+      description: 'De vos propriétés',
     },
   ], [stats]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 gap-4">
       {metrics.map((metric, index) => (
         <StatsCard
           key={index}

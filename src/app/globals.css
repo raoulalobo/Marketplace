@@ -52,8 +52,54 @@
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
   }
+  
+  /* Configuration HTML/Body expert pour éliminer espaces */
+  html {
+    @apply bg-background text-foreground;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
   body {
     @apply bg-background text-foreground;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    line-height: 1.5;
+    /* Suppression de min-height: 100vh qui causait conflit */
+  }
+  
+  /* Classes utilitaires pour viewport moderne */
+  .viewport-height {
+    height: 100dvh; /* Dynamic Viewport Height - s'adapte mobile */
+  }
+  
+  .viewport-min-height {
+    min-height: 100dvh;
+  }
+  
+  /* Layout container expert */
+  .layout-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .main-content {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .footer-sticky {
+    flex-shrink: 0;
+    margin-top: auto;
   }
 }
