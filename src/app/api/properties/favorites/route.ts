@@ -36,6 +36,11 @@ export async function GET(request: NextRequest) {
                 prenom: true
               }
             },
+            medias: {
+              orderBy: {
+                order: 'asc'
+              }
+            },
             _count: {
               select: {
                 favorites: true,
@@ -72,10 +77,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Seuls les acheteurs peuvent ajouter des favoris
-    if (session.user.role !== 'ACHETEUR' && session.user.role !== 'ADMIN') {
+    // Seuls les acheteurs et agents peuvent ajouter des favoris
+    if (session.user.role !== 'ACHETEUR' && session.user.role !== 'ADMIN' && session.user.role !== 'AGENT') {
       return NextResponse.json(
-        { error: 'Seuls les acheteurs peuvent ajouter des favoris' },
+        { error: 'Seuls les acheteurs et agents peuvent ajouter des favoris' },
         { status: 403 }
       );
     }

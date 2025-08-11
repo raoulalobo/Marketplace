@@ -9,7 +9,8 @@ import {
   TrendingUp, 
   DollarSign, 
   MapPin,
-  Building
+  Building,
+  Heart
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -112,6 +113,12 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
       onClick: onViewProperties,
       variant: 'outline' as const,
       href: '/dashboard/properties',
+    },
+    {
+      label: 'Mes favoris',
+      icon: <Heart className="w-4 h-4" />,
+      variant: 'outline' as const,
+      href: '/dashboard/favorites',
     },
     {
       label: 'Demandes de visite',
