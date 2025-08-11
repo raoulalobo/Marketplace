@@ -4,11 +4,12 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Search, Filter, MapPin, Home, Briefcase, Grid } from 'lucide-react';
+import { Search, Filter, MapPin, Home, Briefcase, Grid, ArrowLeftRight, Clock } from 'lucide-react';
 import { PropertyImage } from '@/components/ui/property-image';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // Types pour les propriétés
@@ -21,6 +22,8 @@ interface Property {
   superficie: number;
   adresse: string;
   fraisVisite: number;
+  troc: boolean; // Accepte le troc/échange
+  payer_apres: boolean; // Accepte le paiement différé
   medias: Array<{
     url: string;
     type: 'PHOTO' | 'VIDEO';
@@ -106,6 +109,24 @@ function PropertyCard({ property }: { property: Property }) {
             <span>•</span>
             <span>Visite: {formatPrice(property.fraisVisite || 0)}</span>
           </div>
+          
+          {/* Badges pour les options spéciales */}
+          {(property.troc || property.payer_apres) && (
+            <div className="flex flex-wrap gap-2 pt-2">
+              {property.troc && (
+                <div className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                  <ArrowLeftRight className="w-3 h-3" />
+                  Troc accepté
+                </div>
+              )}
+              {property.payer_apres && (
+                <div className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                  <Clock className="w-3 h-3" />
+                  Paiement différé
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Agent */}
@@ -131,6 +152,8 @@ function PropertiesContent() {
   const [selectedVille, setSelectedVille] = useState('');
   const [selectedType, setSelectedType] = useState('TOUS');
   const [priceRange, setPriceRange] = useState('TOUS');
+  const [trocFilter, setTrocFilter] = useState(false);
+  const [payerApresFilter, setPayerApresFilter] = useState(false);
   const [properties, setProperties] = useState<Property[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -146,7 +169,9 @@ function PropertiesContent() {
     searchQuery: string = searchTerm,
     ville: string = selectedVille,
     type: string = selectedType,
-    prix: string = priceRange
+    prix: string = priceRange,
+    troc: boolean = trocFilter,
+    payerApres: boolean = payerApresFilter
   ) => {
     try {
       setLoading(true);
@@ -168,6 +193,10 @@ function PropertiesContent() {
         if (min) params.append('prixMin', min.toString());
         if (max) params.append('prixMax', max.toString());
       }
+      
+      // Filtres pour les options spéciales
+      if (troc) params.append('troc', 'true');
+      if (payerApres) params.append('payer_apres', 'true');
       
       const response = await fetch(`/api/properties?${params.toString()}`);
       
@@ -208,15 +237,15 @@ function PropertiesContent() {
   // Recharger les propriétés quand les filtres changent (retour à la page 1)
   useEffect(() => {
     if (currentPage === 1) {
-      fetchProperties(1, searchTerm, selectedVille, selectedType, priceRange);
+      fetchProperties(1, searchTerm, selectedVille, selectedType, priceRange, trocFilter, payerApresFilter);
     } else {
       setCurrentPage(1);
     }
-  }, [searchTerm, selectedVille, selectedType, priceRange]);
+  }, [searchTerm, selectedVille, selectedType, priceRange, trocFilter, payerApresFilter]);
 
   // Recharger les propriétés quand la page change
   useEffect(() => {
-    fetchProperties(currentPage, searchTerm, selectedVille, selectedType, priceRange);
+    fetchProperties(currentPage, searchTerm, selectedVille, selectedType, priceRange, trocFilter, payerApresFilter);
   }, [currentPage]);
 
   // Fonctions de pagination
@@ -335,6 +364,46 @@ function PropertiesContent() {
                 </Select>
               </div>
 
+              {/* Options spéciales */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">Options de paiement</label>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      id="troc-filter"
+                      checked={trocFilter}
+                      onCheckedChange={setTrocFilter}
+                    />
+                    <label
+                      htmlFor="troc-filter"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2">
+                        <ArrowLeftRight className="w-4 h-4 text-green-600" />
+                        Accepte le troc
+                      </div>
+                    </label>
+                  </div>
+                  
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      id="payer-apres-filter"
+                      checked={payerApresFilter}
+                      onCheckedChange={setPayerApresFilter}
+                    />
+                    <label
+                      htmlFor="payer-apres-filter"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-blue-600" />
+                        Paiement différé
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
               {/* Bouton reset */}
               <Button 
                 variant="outline" 
@@ -344,6 +413,8 @@ function PropertiesContent() {
                   setSelectedVille('');
                   setSelectedType('TOUS');
                   setPriceRange('TOUS');
+                  setTrocFilter(false);
+                  setPayerApresFilter(false);
                   setCurrentPage(1);
                 }}
               >

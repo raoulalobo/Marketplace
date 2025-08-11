@@ -15,6 +15,8 @@ const updatePropertySchema = z.object({
   adresse: z.string().min(10).optional(),
   ville: z.string().min(1).optional(),
   fraisVisite: z.number().min(0).optional(),
+  troc: z.boolean().optional(), // Accepte le troc/échange
+  payer_apres: z.boolean().optional(), // Accepte le paiement différé
   isActive: z.boolean().optional(),
   photos: z.array(z.string()).min(1).max(5).optional(),
   videos: z.array(z.string()).max(5).optional()

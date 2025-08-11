@@ -56,6 +56,8 @@ model Property {
   adresse         String
   ville           String?          // Ville de la propriété
   fraisVisite     Int?             // Frais de visite en Francs CFA
+  troc            Boolean          @default(false)  // Accepte le troc/échange
+  payer_apres     Boolean          @default(false)  // Accepte le paiement différé
   isActive        Boolean          @default(true)
   isFeatured      Boolean          @default(false)  // Propriété mise en avant
   featuredUntil   DateTime?                         // Date de fin de mise en avant

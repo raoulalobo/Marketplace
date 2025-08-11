@@ -159,15 +159,6 @@ export function RealEstateAlerts({ propertyId, analytics, className = '' }: Real
   const generateInitialAlerts = () => {
     const initialAlerts: Alert[] = [
       {
-        id: 'posthog-setup',
-        type: 'info',
-        title: '📊 Analytics PostHog en cours de configuration',
-        description: 'Votre système d\'analytics avancé se met en place. Les premières données apparaîtront après quelques visites.',
-        priority: 60,
-        timestamp: new Date(),
-        actionable: false
-      },
-      {
         id: 'optimization-ready',
         type: 'success', 
         title: '🚀 Système d\'optimisation prêt !',
@@ -275,14 +266,14 @@ export function RealEstateAlerts({ propertyId, analytics, className = '' }: Real
         estimatedImpact: 50
       },
       {
-        id: 'posthog-features',
+        id: 'local-analytics-features',
         type: 'suggestion', 
-        title: 'Fonctionnalités analytics disponibles',
-        description: 'Session recording, heatmaps, funnels de conversion et signaux d\'achat automatiquement détectés.',
-        action: 'Les données apparaîtront dans les onglets Vue d\'ensemble, Comportement, Entonnoir et Temporel',
-        impact: 'Vision complète du parcours de vos visiteurs',
+        title: 'Analytics locaux disponibles',
+        description: 'Suivi des vues, temps passé et engagement des visiteurs avec système de base de données intégré.',
+        action: 'Les données sont visibles dans le tableau de bord et les statistiques de propriétés',
+        impact: 'Insights basiques sur les performances de vos annonces',
         difficulty: 'easy',
-        estimatedImpact: 75
+        estimatedImpact: 50
       }
     ];
     setRecommendations(initialRecommendations);

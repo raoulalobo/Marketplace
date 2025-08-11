@@ -16,6 +16,8 @@ const createPropertySchema = z.object({
   adresse: z.string().min(10, 'L\'adresse doit contenir au moins 10 caractères'),
   ville: z.string().min(1, 'La ville est requise'),
   fraisVisite: z.number().min(0, 'Les frais de visite ne peuvent pas être négatifs'),
+  troc: z.boolean().optional().default(false), // Accepte le troc/échange
+  payer_apres: z.boolean().optional().default(false), // Accepte le paiement différé
   photos: z.array(z.string()).min(1, 'Au moins une photo est requise').max(5, 'Maximum 5 photos'),
   videos: z.array(z.string()).max(5, 'Maximum 5 vidéos').optional()
 });
@@ -31,7 +33,9 @@ const searchParamsSchema = z.object({
   prixMax: z.string().nullable().optional().transform(val => val ? parseInt(val) : undefined),
   superficieMin: z.string().nullable().optional().transform(val => val ? parseInt(val) : undefined),
   superficieMax: z.string().nullable().optional().transform(val => val ? parseInt(val) : undefined),
-  featured: z.string().nullable().optional().transform(val => val === 'true')
+  featured: z.string().nullable().optional().transform(val => val === 'true'),
+  troc: z.string().nullable().optional().transform(val => val === 'true' ? true : undefined), // Filtre troc
+  payer_apres: z.string().nullable().optional().transform(val => val === 'true' ? true : undefined) // Filtre paiement différé
 });
 
 // GET /api/properties - Récupérer la liste des propriétés avec filtres
@@ -50,7 +54,9 @@ export async function GET(request: NextRequest) {
       prixMax: searchParams.get('prixMax'),
       superficieMin: searchParams.get('superficieMin'),
       superficieMax: searchParams.get('superficieMax'),
-      featured: searchParams.get('featured')
+      featured: searchParams.get('featured'),
+      troc: searchParams.get('troc'),
+      payer_apres: searchParams.get('payer_apres')
     });
 
     const {
@@ -63,7 +69,9 @@ export async function GET(request: NextRequest) {
       prixMax,
       superficieMin,
       superficieMax,
-      featured
+      featured,
+      troc,
+      payer_apres
     } = validatedParams;
 
     // Construire les filtres Prisma
@@ -96,6 +104,14 @@ export async function GET(request: NextRequest) {
       where.superficie = {};
       if (superficieMin) where.superficie.gte = superficieMin;
       if (superficieMax) where.superficie.lte = superficieMax;
+    }
+
+    // Filtres par options spéciales
+    if (troc !== undefined) {
+      where.troc = troc;
+    }
+    if (payer_apres !== undefined) {
+      where.payer_apres = payer_apres;
     }
 
     // Pagination
@@ -169,6 +185,12 @@ export async function GET(request: NextRequest) {
       }),
       prisma.property.count({ where: { ...where, isActive: true } })
     ]);
+
+    // Logs pour diagnostiquer le problème
+    console.log(`[API Debug] Total count: ${total}, Properties returned: ${properties.length}, Limit: ${limit}, Page: ${page}`);
+    if (properties.length !== Math.min(limit, total)) {
+      console.warn(`[API Warning] Discrepancy detected: Expected ${Math.min(limit, total)} properties, got ${properties.length}`);
+    }
 
     return NextResponse.json({
       properties,

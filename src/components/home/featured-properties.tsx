@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { PropertyImage } from '@/components/ui/property-image';
 import Link from 'next/link';
-import { MapPin, Home, Briefcase, Grid, Eye, Heart, ArrowRight } from 'lucide-react';
+import { MapPin, Home, Briefcase, Grid, Eye, Heart, ArrowRight, ArrowLeftRight, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // Interface pour les propriétés
@@ -17,6 +17,8 @@ interface Property {
   superficie: number;
   adresse: string;
   fraisVisite: number;
+  troc: boolean; // Accepte le troc/échange
+  payer_apres: boolean; // Accepte le paiement différé
   medias: Array<{
     url: string;
     type: 'PHOTO' | 'VIDEO';
@@ -214,6 +216,24 @@ export function FeaturedProperties() {
                         </div>
                       )}
                     </div>
+
+                    {/* Options spéciales */}
+                    {(property.troc || property.payer_apres) && (
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {property.troc && (
+                          <div className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                            <ArrowLeftRight className="w-3 h-3" />
+                            Troc
+                          </div>
+                        )}
+                        {property.payer_apres && (
+                          <div className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                            <Clock className="w-3 h-3" />
+                            Paiement différé
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Actions */}
                     <div className="flex gap-2">

@@ -3,7 +3,6 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/components/providers/auth-provider';
-import { PostHogProvider } from '@/components/providers/posthog-provider';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 
@@ -24,15 +23,13 @@ export default function RootLayout({
     <html lang="fr">
       <body className={inter.className}>
         <AuthProvider>
-          <PostHogProvider>
-            <div className="layout-container">
-              <Navbar />
-              <main className="main-content overflow-auto">
-                {children}
-              </main>
-              <Footer />
-            </div>
-          </PostHogProvider>
+          <div className="layout-container">
+            <Navbar />
+            <main className="main-content overflow-auto">
+              {children}
+            </main>
+            <Footer />
+          </div>
         </AuthProvider>
       </body>
     </html>

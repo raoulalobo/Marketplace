@@ -10,7 +10,7 @@ import { PropertyImage } from '@/components/ui/property-image';
 import { 
   ArrowLeft, MapPin, Home, Briefcase, Grid, Calendar, 
   Heart, Flag, User, Phone, Mail, Share2, Camera,
-  Ruler, DollarSign, Eye
+  Ruler, DollarSign, Eye, ArrowLeftRight, Clock
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,6 @@ import { SocialShareModal } from '@/components/modals/social-share-modal';
 import { AuthRequiredModal } from '@/components/modals/auth-required-modal';
 import { ToastContainer, useToast } from '@/components/ui/toast';
 import { useFavorite } from '@/hooks/use-favorite';
-import { usePostHogPropertyTracking } from '@/hooks/use-posthog-property-tracking';
 
 // Interface pour les propriétés
 interface Property {
@@ -36,6 +35,8 @@ interface Property {
   superficie: number;
   adresse: string;
   fraisVisite: number;
+  troc: boolean; // Accepte le troc/échange
+  payer_apres: boolean; // Accepte le paiement différé
   medias: Array<{
     url: string;
     type: 'PHOTO' | 'VIDEO';
@@ -118,16 +119,7 @@ export default function PropertyDetailPage() {
     }
   });
 
-  // Hook PostHog pour tracker le temps passé sur la propriété
-  const timeTracking = usePostHogPropertyTracking({
-    propertyId: params.id as string,
-    enabled: true, // Toujours activé pour tous les utilisateurs
-    heartbeatInterval: 15, // Heartbeat toutes les 15 secondes
-    onError: (error) => {
-      console.error('Erreur de tracking PostHog:', error);
-      // Pas de toast d'erreur pour ne pas déranger l'utilisateur
-    }
-  });
+  // Le tracking est maintenant géré par l'API /api/properties/[id] automatiquement
 
   // Charger les données de la propriété depuis l'API
   useEffect(() => {
@@ -214,14 +206,6 @@ export default function PropertyDetailPage() {
 
   // Gestionnaires d'événements pour les actions
   const handleVisitRequest = () => {
-    // Tracker l'interaction avec intention d'achat élevée
-    timeTracking.trackEvent('visit_request_clicked');
-    timeTracking.trackPurchaseIntent('high', 'visit_request_button');
-    timeTracking.trackElementInteraction('visit_button', 'click', { 
-      button_text: 'Demander une visite',
-      price_displayed: property?.prix 
-    });
-    
     if (!session) {
       setAuthAction('visit');
       setShowAuthModal(true);
@@ -231,9 +215,6 @@ export default function PropertyDetailPage() {
   };
 
   const handleReport = () => {
-    // Tracker l'interaction
-    timeTracking.trackEvent('report_clicked');
-    
     if (!session) {
       setAuthAction('report');
       setShowAuthModal(true);
@@ -243,27 +224,14 @@ export default function PropertyDetailPage() {
   };
 
   const handleShare = () => {
-    // Tracker l'interaction
-    timeTracking.trackEvent('share_clicked');
     setShowShareModal(true);
   };
 
   const handleSocialShare = () => {
-    // Tracker l'interaction de partage social
-    timeTracking.trackEvent('social_share_clicked');
     setShowSocialShareModal(true);
   };
 
   const handleFavorite = async () => {
-    // Tracker l'interaction avec intention d'achat modérée
-    const action = isFavorite ? 'remove' : 'add';
-    timeTracking.trackEvent('favorite_clicked', { currentState: action });
-    timeTracking.trackPurchaseIntent('medium', 'favorite_button');
-    timeTracking.trackElementInteraction('favorite_button', action, { 
-      property_type: property?.type,
-      property_price: property?.prix 
-    });
-    
     if (!session) {
       setAuthAction('favorite');
       setShowAuthModal(true);
@@ -274,11 +242,6 @@ export default function PropertyDetailPage() {
 
   // Callbacks pour les modals
   const handleVisitSuccess = (visitRequest: any) => {
-    // Tracker la conversion réussie
-    timeTracking.trackEvent('visit_request_success', { 
-      visitRequestId: visitRequest.id 
-    });
-    
     toast.success(
       'Demande envoyée !',
       `Votre demande de visite pour "${property?.titre}" a été envoyée à l'agent.`
@@ -286,11 +249,6 @@ export default function PropertyDetailPage() {
   };
 
   const handleReportSuccess = (report: any) => {
-    // Tracker le signalement réussi
-    timeTracking.trackEvent('report_success', { 
-      reportId: report.id 
-    });
-    
     toast.success(
       'Signalement envoyé',
       'Votre signalement a été transmis à notre équipe de modération.'
@@ -298,12 +256,6 @@ export default function PropertyDetailPage() {
   };
 
   const handleSocialShareSuccess = (result: any) => {
-    // Tracker le partage social réussi
-    timeTracking.trackEvent('social_share_success', { 
-      platforms: result.data?.successfulPosts,
-      ayrshareId: result.data?.ayrshareId 
-    });
-    
     toast.success(
       'Publication réussie !',
       `Votre propriété a été publiée sur ${result.data?.successfulPosts} plateforme(s).`
@@ -311,11 +263,6 @@ export default function PropertyDetailPage() {
   };
 
   const handleSocialShareError = (error: string) => {
-    // Tracker l'erreur de partage social
-    timeTracking.trackEvent('social_share_error', { 
-      error: error 
-    });
-    
     toast.error(
       'Erreur de publication',
       error
@@ -381,19 +328,6 @@ export default function PropertyDetailPage() {
                       key={index}
                       onClick={() => {
                         setCurrentImageIndex(index);
-                        timeTracking.trackEvent('image_changed', { 
-                          fromIndex: currentImageIndex, 
-                          toIndex: index 
-                        });
-                        timeTracking.trackElementInteraction('image_thumbnail', 'click', {
-                          image_index: index,
-                          total_images: photos.length,
-                          engagement_level: 'visual_exploration'
-                        });
-                        // Engagement modéré si l'utilisateur explore plusieurs photos
-                        if (index !== currentImageIndex) {
-                          timeTracking.trackPurchaseIntent('low', 'image_exploration');
-                        }
                       }}
                       className={`relative h-16 w-16 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-colors ${
                         index === currentImageIndex ? 'border-blue-600' : 'border-gray-200'
@@ -467,6 +401,27 @@ export default function PropertyDetailPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Options de paiement et d'échange */}
+              {(property.troc || property.payer_apres) && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Options disponibles</h3>
+                  <div className="flex flex-wrap gap-3">
+                    {property.troc && (
+                      <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-lg font-medium">
+                        <ArrowLeftRight className="w-5 h-5" />
+                        Troc accepté
+                      </div>
+                    )}
+                    {property.payer_apres && (
+                      <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-lg font-medium">
+                        <Clock className="w-5 h-5" />
+                        Paiement différé accepté
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Description */}
               <div>

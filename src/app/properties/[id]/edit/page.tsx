@@ -10,13 +10,15 @@ import { z } from 'zod';
 import { 
   ArrowLeft, Upload, X, Image as ImageIcon, Video, 
   Home, MapPin, Briefcase, Grid, DollarSign, Ruler,
-  Save, Eye, AlertTriangle, CheckCircle, Loader2, Trash2
+  Save, Eye, AlertTriangle, CheckCircle, Loader2, Trash2,
+  ArrowLeftRight, Clock
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { PropertyImage } from '@/components/ui/property-image';
@@ -33,6 +35,8 @@ const editPropertySchema = z.object({
   adresse: z.string().min(10, 'L\'adresse doit contenir au moins 10 caractères'),
   ville: z.string().min(1, 'Veuillez sélectionner une ville'),
   fraisVisite: z.number().min(0, 'Les frais de visite ne peuvent pas être négatifs'),
+  troc: z.boolean().optional().default(false), // Accepte le troc/échange
+  payer_apres: z.boolean().optional().default(false), // Accepte le paiement différé
   isActive: z.boolean().optional()
 });
 
@@ -43,6 +47,8 @@ interface Property extends EditPropertyFormData {
   id: string;
   createdAt: string;
   updatedAt: string;
+  troc: boolean;
+  payer_apres: boolean;
   medias: Array<{
     id: string;
     url: string;
@@ -129,6 +135,8 @@ export default function EditPropertyPage() {
           setValue('adresse', propertyData.adresse);
           setValue('ville', propertyData.ville || '');
           setValue('fraisVisite', propertyData.fraisVisite);
+          setValue('troc', propertyData.troc || false);
+          setValue('payer_apres', propertyData.payer_apres || false);
           setValue('isActive', propertyData.isActive);
           
         } else {
@@ -493,6 +501,70 @@ export default function EditPropertyPage() {
                     )}
                   </div>
 
+                </div>
+              </div>
+
+              {/* Section: Options de paiement et d'échange */}
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+                  <ArrowLeftRight className="w-5 h-5 text-green-600" />
+                  Options de paiement et d'échange
+                </h2>
+                
+                <div className="bg-gray-50 p-6 rounded-lg space-y-6">
+                  <p className="text-gray-600 text-sm mb-4">
+                    Sélectionnez les options de paiement et d'échange que vous acceptez pour cette propriété.
+                  </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Option Troc */}
+                    <div className="flex items-start space-x-3">
+                      <Checkbox
+                        id="troc"
+                        {...register('troc')}
+                        className="mt-1"
+                        defaultChecked={property?.troc || false}
+                      />
+                      <div className="flex-1">
+                        <label
+                          htmlFor="troc"
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <ArrowLeftRight className="w-4 h-4 text-green-600" />
+                            Accepter le troc
+                          </div>
+                        </label>
+                        <p className="text-xs text-gray-500">
+                          Cette propriété peut être échangée contre des biens de valeur équivalente (voiture, bijoux, électroménager, etc.)
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Option Paiement différé */}
+                    <div className="flex items-start space-x-3">
+                      <Checkbox
+                        id="payer_apres"
+                        {...register('payer_apres')}
+                        className="mt-1"
+                        defaultChecked={property?.payer_apres || false}
+                      />
+                      <div className="flex-1">
+                        <label
+                          htmlFor="payer_apres"
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <Clock className="w-4 h-4 text-blue-600" />
+                            Accepter le paiement différé
+                          </div>
+                        </label>
+                        <p className="text-xs text-gray-500">
+                          Possibilité de paiement échelonné ou différé selon des modalités à négocier
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
