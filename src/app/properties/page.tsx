@@ -3,6 +3,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Search, Filter, MapPin, Home, Briefcase, Grid, ArrowLeftRight, Clock } from 'lucide-react';
 import { PropertyImage } from '@/components/ui/property-image';
@@ -148,6 +149,7 @@ function PropertyCard({ property }: { property: Property }) {
 // Composant de contenu principal avec gestion des paramètres URL
 function PropertiesContent() {
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedVille, setSelectedVille] = useState('');
   const [selectedType, setSelectedType] = useState('TOUS');
@@ -162,6 +164,52 @@ function PropertiesContent() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalProperties, setTotalProperties] = useState(0);
   const propertiesPerPage = 12;
+
+  // Fonction pour vérifier si des critères de recherche sont définis
+  const hasSearchCriteria = (searchQuery: string, ville: string, type: string, prix: string, troc: boolean, payerApres: boolean) => {
+    return !!(
+      searchQuery ||
+      (ville && ville !== 'Toutes les villes') ||
+      (type && type !== 'TOUS') ||
+      (prix && prix !== 'TOUS') ||
+      troc ||
+      payerApres
+    );
+  };
+
+  // Fonction pour sauvegarder une recherche dans l'historique
+  const saveSearchToHistory = async (searchData: {
+    searchQuery?: string;
+    filters: Record<string, any>;
+    resultCount: number;
+  }) => {
+    try {
+      // Nettoyer les filtres undefined
+      const cleanFilters = Object.fromEntries(
+        Object.entries(searchData.filters).filter(([_, value]) => value !== undefined)
+      );
+
+      // Ne pas sauvegarder si aucun filtre n'est défini
+      if (Object.keys(cleanFilters).length === 0 && !searchData.searchQuery) {
+        return;
+      }
+
+      await fetch('/api/searches', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          searchQuery: searchData.searchQuery,
+          filters: cleanFilters,
+          resultCount: searchData.resultCount
+        }),
+      });
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde de la recherche:', error);
+      // Ne pas bloquer l'interface si la sauvegarde échoue
+    }
+  };
 
   // Fonction pour récupérer les propriétés depuis l'API avec filtres et pagination
   const fetchProperties = async (
@@ -209,6 +257,21 @@ function PropertiesContent() {
       setTotalPages(data.pagination?.totalPages || 1);
       setTotalProperties(data.pagination?.total || 0);
       setCurrentPage(data.pagination?.page || 1);
+      
+      // Sauvegarder la recherche si l'utilisateur est connecté et qu'il y a des critères
+      if (session?.user && hasSearchCriteria(searchQuery, ville, type, prix, troc, payerApres)) {
+        saveSearchToHistory({
+          searchQuery: searchQuery || undefined,
+          filters: {
+            ville: ville && ville !== 'Toutes les villes' ? ville : undefined,
+            type: type && type !== 'TOUS' ? type : undefined,
+            priceRange: prix && prix !== 'TOUS' ? prix : undefined,
+            troc: troc || undefined,
+            payerApres: payerApres || undefined
+          },
+          resultCount: data.pagination?.total || 0
+        });
+      }
       
     } catch (err) {
       console.error('Erreur API:', err);

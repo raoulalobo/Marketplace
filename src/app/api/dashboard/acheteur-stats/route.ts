@@ -375,7 +375,9 @@ export async function GET(request: NextRequest) {
       completedVisitRequests,
       
       // Préférences
-      savedSearches: 3, // Simulé - à implémenter
+      savedSearches: await prisma.searchHistory.count({
+        where: { userId: acheteurId }
+      }),
       averageBudget,
       preferredPropertyTypes: favoriteTypes,
       preferredCities: favoriteCities,

@@ -23,7 +23,6 @@ export function AcheteurDashboard({ user }: AcheteurDashboardProps) {
     favoriteProperties: 0,
     visitRequests: 0,
     recentSearches: 0,
-    alerts: 0,
   });
 
   const [detailedData, setDetailedData] = useState({
@@ -44,7 +43,6 @@ export function AcheteurDashboard({ user }: AcheteurDashboardProps) {
             favoriteProperties: data.totalFavorites,
             visitRequests: data.totalVisitRequests,
             recentSearches: data.savedSearches,
-            alerts: data.pendingVisitRequests,
           });
           
           // Mettre à jour les données détaillées
@@ -103,9 +101,9 @@ export function AcheteurDashboard({ user }: AcheteurDashboardProps) {
               </Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link href="/dashboard/alerts">
-                <Bell className="w-4 h-4 mr-2" />
-                Alertes de recherche
+              <Link href="/dashboard/searches">
+                <Search className="w-4 h-4 mr-2" />
+                Recherches récentes
               </Link>
             </Button>
           </div>
@@ -152,12 +150,12 @@ export function AcheteurDashboard({ user }: AcheteurDashboardProps) {
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <Bell className="w-6 h-6 text-orange-600" />
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <Search className="w-6 h-6 text-purple-600" />
             </div>
             <div className="ml-4">
-              <p className="text-2xl font-bold text-gray-900">{stats.alerts}</p>
-              <p className="text-gray-600">Nouvelles alertes</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.recentSearches}</p>
+              <p className="text-gray-600">Recherches sauvegardées</p>
             </div>
           </div>
         </div>
