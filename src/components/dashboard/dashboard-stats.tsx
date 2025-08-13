@@ -10,7 +10,8 @@ import {
   DollarSign, 
   MapPin,
   Building,
-  Heart
+  Heart,
+  User
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -126,6 +127,12 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
       onClick: onViewVisits,
       variant: 'outline' as const,
       href: '/dashboard/visits',
+    },
+    {
+      label: 'Mon profil',
+      icon: <User className="w-4 h-4" />,
+      variant: 'outline' as const,
+      href: '/dashboard/profile',
     },
   ], [onAddProperty, onViewProperties, onViewVisits]);
 

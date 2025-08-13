@@ -1,6 +1,3 @@
-// Schema Prisma pour la marketplace immobilière camerounaise
-// Configuration du générateur et de la base de données
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,249 +7,171 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Modèle des utilisateurs avec gestion des rôles
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  password      String
-  nom           String
-  prenom        String
-  telephone     String?
-  role          UserRole  @default(ACHETEUR)
-  isActive      Boolean   @default(true)
-  emailVerified DateTime?
-  lastLoginAt   DateTime? // Dernière connexion pour les recommandations
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  // Relations
-  properties         Property[]            // Biens immobiliers ajoutés (pour agents)
-  visitRequests      VisitRequest[]        // Demandes de visite effectuées
-  reports            Report[]              // Signalements effectués
-  favorites          Favorite[]            // Favoris de l'utilisateur
-  propertyViews      PropertyView[]        // Vues de propriétés (si connecté)
-  propertyTimeSessions PropertyTimeSession[] // Sessions de temps sur propriétés
-  searchHistory      SearchHistory[]       // Historique des recherches utilisateur
-  accounts           Account[]             // Comptes OAuth
-  sessions           Session[]             // Sessions utilisateur
+  id                   String                @id @default(cuid())
+  email                String                @unique
+  password             String
+  nom                  String
+  prenom               String
+  telephone            String?
+  avatar               String?               // URL de l'avatar utilisateur
+  role                 UserRole              @default(ACHETEUR)
+  isActive             Boolean               @default(true)
+  emailVerified        DateTime?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  lastLoginAt          DateTime?
+  accounts             Account[]
+  favorites            Favorite[]
+  properties           Property[]
+  propertyTimeSessions PropertyTimeSession[]
+  propertyViews        PropertyView[]
+  reports              Report[]
+  searchHistory        SearchHistory[]
+  sessions             Session[]
+  visitRequests        VisitRequest[]
 
   @@map("users")
 }
 
-// Énumération des rôles utilisateur
-enum UserRole {
-  AGENT        // Agent immobilier
-  ACHETEUR     // Acheteur/Client
-  ADMIN        // Administrateur
-}
-
-// Modèle des biens immobiliers
 model Property {
-  id              String           @id @default(cuid())
-  titre           String
-  description     String           @db.Text
-  type            PropertyType
-  prix            Int              // Prix en Francs CFA
-  superficie      Float?           // Superficie en m²
-  adresse         String
-  ville           String?          // Ville de la propriété
-  fraisVisite     Int?             // Frais de visite en Francs CFA
-  troc            Boolean          @default(false)  // Accepte le troc/échange
-  payer_apres     Boolean          @default(false)  // Accepte le paiement différé
-  isActive        Boolean          @default(true)
-  isFeatured      Boolean          @default(false)  // Propriété mise en avant
-  featuredUntil   DateTime?                         // Date de fin de mise en avant
-  viewsCount      Int              @default(0)      // Nombre de vues (pour rotation intelligente)
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-
-  // Relation avec l'agent qui a ajouté le bien
-  agentId         String
-  agent           User             @relation(fields: [agentId], references: [id])
-
-  // Relations
-  medias          PropertyMedia[]     // Photos et vidéos
-  visitRequests   VisitRequest[]      // Demandes de visite
-  reports         Report[]            // Signalements
-  favorites       Favorite[]          // Utilisateurs qui ont mis en favori
-  views           PropertyView[]      // Vues de cette propriété
-  timeSessions    PropertyTimeSession[] // Sessions de temps sur cette propriété
+  id            String                @id @default(cuid())
+  titre         String
+  description   String
+  type          PropertyType
+  prix          Int
+  superficie    Float?
+  adresse       String
+  fraisVisite   Int?
+  isActive      Boolean               @default(true)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  agentId       String
+  featuredUntil DateTime?
+  isFeatured    Boolean               @default(false)
+  viewsCount    Int                   @default(0)
+  ville         String?
+  payer_apres   Boolean               @default(false)
+  troc          Boolean               @default(false)
+  favorites     Favorite[]
+  agent         User                  @relation(fields: [agentId], references: [id])
+  medias        PropertyMedia[]
+  timeSessions  PropertyTimeSession[]
+  views         PropertyView[]
+  reports       Report[]
+  visitRequests VisitRequest[]
 
   @@map("properties")
 }
 
-// Énumération des types de propriétés
-enum PropertyType {
-  MAISON    // Maison
-  TERRAIN   // Terrain
-  BUREAU    // Bureau
-  HANGAR    // Hangar
-  AUTRE     // Autre type
-}
-
-// Modèle pour les médias (photos et vidéos)
 model PropertyMedia {
   id         String    @id @default(cuid())
-  url        String    // URL du fichier sur Wasabi
-  type       MediaType // Photo ou vidéo
-  order      Int       @default(0) // Ordre d'affichage
+  url        String
+  type       MediaType
+  order      Int       @default(0)
   createdAt  DateTime  @default(now())
-
-  // Relation avec la propriété
   propertyId String
   property   Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@map("property_medias")
 }
 
-// Énumération des types de médias
-enum MediaType {
-  PHOTO
-  VIDEO
-}
-
-// Modèle des demandes de visite
 model VisitRequest {
-  id              String           @id @default(cuid())
-  message         String?          @db.Text // Message optionnel de l'acheteur
-  datePreferee    DateTime?        // Date préférée pour la visite
-  status          VisitStatus      @default(PENDING)
-  responseMessage String?          @db.Text // Message de réponse de l'agent
-  scheduledDate   DateTime?        // Date programmée par l'agent si accepté
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-
-  // Relations
+  id              String      @id @default(cuid())
+  message         String?
+  datePreferee    DateTime?
+  status          VisitStatus @default(PENDING)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
   acheteurId      String
-  acheteur        User             @relation(fields: [acheteurId], references: [id])
   propertyId      String
-  property        Property         @relation(fields: [propertyId], references: [id])
+  responseMessage String?
+  scheduledDate   DateTime?
+  acheteur        User        @relation(fields: [acheteurId], references: [id])
+  property        Property    @relation(fields: [propertyId], references: [id])
 
   @@map("visit_requests")
 }
 
-// Énumération des statuts de demande de visite
-enum VisitStatus {
-  PENDING   // En attente
-  ACCEPTED  // Acceptée
-  REJECTED  // Refusée
-  COMPLETED // Terminée
-}
-
-// Modèle des signalements d'abus
 model Report {
-  id         String      @id @default(cuid())
-  motif      String      // Motif du signalement
-  description String?    @db.Text // Description détaillée
-  status     ReportStatus @default(PENDING)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-
-  // Relations
-  userId     String
-  user       User        @relation(fields: [userId], references: [id])
-  propertyId String
-  property   Property    @relation(fields: [propertyId], references: [id])
+  id          String       @id @default(cuid())
+  motif       String
+  description String?
+  status      ReportStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  userId      String
+  propertyId  String
+  property    Property     @relation(fields: [propertyId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
 
   @@map("reports")
 }
 
-// Énumération des statuts de signalement
-enum ReportStatus {
-  PENDING     // En attente de traitement
-  REVIEWED    // Examiné
-  RESOLVED    // Résolu
-  DISMISSED   // Rejeté
-}
-
-// Modèle des favoris
 model Favorite {
   id         String   @id @default(cuid())
   createdAt  DateTime @default(now())
-
-  // Relations
   userId     String
-  user       User     @relation(fields: [userId], references: [id])
   propertyId String
   property   Property @relation(fields: [propertyId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
 
-  // Un utilisateur ne peut pas mettre le même bien en favori plusieurs fois
   @@unique([userId, propertyId])
   @@map("favorites")
 }
 
-// Modèle pour tracker les vues des propriétés
 model PropertyView {
   id         String   @id @default(cuid())
-  viewerIp   String   // Adresse IP du visiteur
-  userAgent  String?  // User agent pour déduplication
+  viewerIp   String
+  userAgent  String?
   createdAt  DateTime @default(now())
-
-  // Relations
   propertyId String
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  
-  // Optionnel : Si l'utilisateur est connecté
   userId     String?
-  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user       User?    @relation(fields: [userId], references: [id])
 
-  // Index pour optimiser les requêtes d'analytiques
   @@index([propertyId, createdAt])
   @@index([createdAt])
   @@map("property_views")
 }
 
-// Modèle pour tracker le temps passé sur les propriétés
 model PropertyTimeSession {
   id           String    @id @default(cuid())
-  sessionId    String    @unique // Identifiant unique de session côté client
-  viewerIp     String    // Adresse IP du visiteur
-  userAgent    String?   // User agent pour identification
-  
-  // Timestamps de session
-  enteredAt    DateTime  @default(now()) // Entrée sur la page
-  lastActiveAt DateTime  @default(now()) // Dernière activité (heartbeat)
-  leftAt       DateTime? // Sortie de la page (nullable)
-  
-  // Métriques de temps
-  timeSpent    Int?      // Temps total en secondes (calculé)
-  activeTime   Int?      // Temps avec onglet actif en secondes
-  
-  // Données d'engagement
-  events       Json?     // Événements utilisateur (scroll, clics, etc.)
-  scrollDepth  Float?    // Profondeur de scroll maximale (0-100%)
-  
-  // Relations
+  sessionId    String    @unique
+  viewerIp     String
+  userAgent    String?
+  enteredAt    DateTime  @default(now())
+  lastActiveAt DateTime  @default(now())
+  leftAt       DateTime?
+  timeSpent    Int?
+  activeTime   Int?
+  events       Json?
+  scrollDepth  Float?
   propertyId   String
-  property     Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  
-  // Optionnel : Si l'utilisateur est connecté
   userId       String?
-  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  property     Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user         User?     @relation(fields: [userId], references: [id])
 
-  // Index pour optimiser les requêtes
   @@index([propertyId, enteredAt])
   @@index([sessionId])
   @@index([enteredAt])
   @@map("property_time_sessions")
 }
 
-// Modèles NextAuth.js pour l'authentification
 model Account {
   id                String  @id @default(cuid())
   userId            String  @map("user_id")
   type              String
   provider          String
   providerAccountId String  @map("provider_account_id")
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@map("accounts")
@@ -277,22 +196,51 @@ model VerificationToken {
   @@map("verificationtokens")
 }
 
-// Modèle pour l'historique des recherches utilisateur
 model SearchHistory {
   id          String   @id @default(cuid())
-  userId      String   
-  searchQuery String?  // Terme de recherche textuel (optionnel)
-  filters     Json     // Critères de recherche (type, ville, prix, etc.)
-  resultCount Int      @default(0) // Nombre de résultats trouvés
-  name        String?  // Nom donné par l'utilisateur à cette recherche (optionnel)
+  userId      String
+  searchQuery String?
+  filters     Json
+  resultCount Int      @default(0)
+  name        String?
   createdAt   DateTime @default(now())
-  lastUsed    DateTime @default(now()) // Dernière fois utilisée
-
-  // Relations
+  lastUsed    DateTime @default(now())
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Index pour optimiser les requêtes
   @@index([userId, lastUsed])
   @@index([createdAt])
   @@map("search_history")
+}
+
+enum UserRole {
+  AGENT
+  ACHETEUR
+  ADMIN
+}
+
+enum PropertyType {
+  MAISON
+  TERRAIN
+  BUREAU
+  HANGAR
+  AUTRE
+}
+
+enum MediaType {
+  PHOTO
+  VIDEO
+}
+
+enum VisitStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  COMPLETED
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  DISMISSED
 }

@@ -19,6 +19,17 @@ const BREADCRUMB_MAP: Record<string, string> = {
   // Demandes de visite
   '/dashboard/visits': 'Demandes de visite',
   
+  // Profil utilisateur
+  '/dashboard/profile': 'Profil',
+  '/dashboard/profile/edit': 'Modifier profil',
+  '/dashboard/profile/security': 'Sécurité',
+  
+  // Favoris
+  '/dashboard/favorites': 'Mes favoris',
+  
+  // Recherches
+  '/dashboard/searches': 'Recherches récentes',
+  
   // Pages générales
   '/properties': 'Propriétés',
   '/about': 'À propos',

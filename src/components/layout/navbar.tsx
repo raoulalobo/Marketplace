@@ -33,7 +33,7 @@ export function Navbar() {
 
     // Ajout d'éléments spécifiques selon le rôle
     if (session.user.role === UserRole.ACHETEUR) {
-      userItems.splice(2, 0, { href: '/favorites', label: 'Favoris', icon: Heart });
+      userItems.splice(2, 0, { href: '/dashboard/favorites', label: 'Favoris', icon: Heart });
     }
 
     if (session.user.role === UserRole.AGENT) {

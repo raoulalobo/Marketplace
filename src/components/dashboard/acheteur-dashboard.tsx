@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Heart, Search, MessageSquare, Bell, TrendingUp, MapPin, Home } from 'lucide-react';
+import { Heart, Search, MessageSquare, Bell, TrendingUp, MapPin, Home, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PropertyImage } from '@/components/ui/property-image';
 
@@ -89,7 +89,7 @@ export function AcheteurDashboard({ user }: AcheteurDashboardProps) {
               </Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link href="/favorites">
+              <Link href="/dashboard/favorites">
                 <Heart className="w-4 h-4 mr-2" />
                 Mes favoris
               </Link>
@@ -104,6 +104,12 @@ export function AcheteurDashboard({ user }: AcheteurDashboardProps) {
               <Link href="/dashboard/searches">
                 <Search className="w-4 h-4 mr-2" />
                 Recherches récentes
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/dashboard/profile">
+                <User className="w-4 h-4 mr-2" />
+                Mon profil
               </Link>
             </Button>
           </div>
@@ -167,7 +173,7 @@ export function AcheteurDashboard({ user }: AcheteurDashboardProps) {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Mes favoris</h3>
-            <Link href="/favorites" className="text-blue-600 hover:text-blue-500 text-sm">
+            <Link href="/dashboard/favorites" className="text-blue-600 hover:text-blue-500 text-sm">
               Voir tout
             </Link>
           </div>
