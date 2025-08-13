@@ -1,7 +1,7 @@
 // Composant pour afficher et gérer l'historique des recherches
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { 
   Search, 
@@ -267,9 +267,9 @@ export function SearchHistory({ userId }: SearchHistoryProps) {
       
       const data = await response.json();
       setSearches(data.searches || []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erreur API recherches:', err);
-      setError(err.message || 'Erreur lors du chargement des recherches');
+      setError(err instanceof Error ? err.message : 'Erreur lors du chargement des recherches');
     } finally {
       setLoading(false);
     }
@@ -281,7 +281,7 @@ export function SearchHistory({ userId }: SearchHistoryProps) {
   }, [fetchSearches]);
 
   // Fonction pour supprimer une recherche
-  const handleDelete = async (searchId: string) => {
+  const handleDelete = useCallback(async (searchId: string) => {
     try {
       const response = await fetch(`/api/searches/${searchId}`, {
         method: 'DELETE',
@@ -296,7 +296,7 @@ export function SearchHistory({ userId }: SearchHistoryProps) {
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
     }
-  };
+  }, []);
 
   // Fonction pour renommer une recherche
   const handleRename = async (searchId: string, newName: string) => {

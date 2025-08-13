@@ -14,6 +14,30 @@ interface User {
   role: string;
 }
 
+interface FavoriteProperty {
+  id: string;
+  titre: string;
+  ville: string;
+  prix: number;
+}
+
+interface VisitRequest {
+  id: string;
+  propertyTitle: string;
+  requestedAt: string;
+  status: 'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'REJECTED';
+}
+
+interface Recommendation {
+  id: string;
+  titre: string;
+  ville: string;
+  prix: number;
+  type: string;
+  imageUrl?: string;
+  matchScore: number;
+}
+
 interface AcheteurDashboardProps {
   user: User;
 }
@@ -25,7 +49,12 @@ export function AcheteurDashboard({ user }: AcheteurDashboardProps) {
     recentSearches: 0,
   });
 
-  const [detailedData, setDetailedData] = useState({
+  const [detailedData, setDetailedData] = useState<{
+    favoriteProperties: FavoriteProperty[];
+    visitHistory: VisitRequest[];
+    recommendations: Recommendation[];
+    loading: boolean;
+  }>({
     favoriteProperties: [],
     visitHistory: [],
     recommendations: [],
@@ -53,11 +82,9 @@ export function AcheteurDashboard({ user }: AcheteurDashboardProps) {
             loading: false
           });
         } else {
-          console.error('Erreur lors du chargement des statistiques');
           setDetailedData(prev => ({ ...prev, loading: false }));
         }
       } catch (error) {
-        console.error('Erreur API:', error);
         setDetailedData(prev => ({ ...prev, loading: false }));
       }
     };
@@ -193,7 +220,7 @@ export function AcheteurDashboard({ user }: AcheteurDashboardProps) {
             </div>
           ) : detailedData.favoriteProperties.length > 0 ? (
             <div className="space-y-3">
-              {detailedData.favoriteProperties.slice(0, 2).map((favorite: any) => (
+              {detailedData.favoriteProperties.slice(0, 2).map((favorite: FavoriteProperty) => (
                 <div key={favorite.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
                   <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
                   <div className="flex-1">
@@ -243,7 +270,7 @@ export function AcheteurDashboard({ user }: AcheteurDashboardProps) {
             </div>
           ) : detailedData.visitHistory.length > 0 ? (
             <div className="space-y-3">
-              {detailedData.visitHistory.slice(0, 2).map((visit: any) => (
+              {detailedData.visitHistory.slice(0, 2).map((visit: VisitRequest) => (
                 <div key={visit.id} className="flex items-center space-x-3 p-3 border rounded-lg">
                   <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
                   <div className="flex-1">
@@ -301,7 +328,7 @@ export function AcheteurDashboard({ user }: AcheteurDashboardProps) {
             </div>
           ) : detailedData.recommendations.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {detailedData.recommendations.map((recommendation: any) => (
+              {detailedData.recommendations.map((recommendation: Recommendation) => (
                 <Link
                   key={recommendation.id}
                   href={`/properties/${recommendation.id}`}

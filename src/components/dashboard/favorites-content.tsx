@@ -93,7 +93,7 @@ export function FavoritesContent({ user }: FavoritesContentProps) {
             const data = await response.json();
             const favoritesData = data.favoriteProperties || [];
             // Transformer les données pour correspondre à l'interface
-            const transformedFavorites = favoritesData.map((fav: any) => ({
+            const transformedFavorites = favoritesData.map((fav: Partial<FavoriteProperty>) => ({
               ...fav,
               ville: fav.ville || fav.adresse?.split(',').pop()?.trim() || 'Ville inconnue',
               description: fav.description || '',
@@ -113,7 +113,7 @@ export function FavoritesContent({ user }: FavoritesContentProps) {
             const data = await response.json();
             const favoritesData = data.favorites || [];
             // Transformer les données pour correspondre à l'interface
-            const transformedFavorites = favoritesData.map((fav: any) => ({
+            const transformedFavorites = favoritesData.map((fav: Partial<FavoriteProperty>) => ({
               ...fav.property,
               ville: fav.property.ville || fav.property.adresse?.split(',').pop()?.trim() || 'Ville inconnue',
               addedAt: fav.createdAt,
@@ -127,7 +127,7 @@ export function FavoritesContent({ user }: FavoritesContentProps) {
           throw new Error('Erreur lors du chargement des favoris');
         }
         
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Erreur lors du chargement des favoris:', err);
         setError(err.message || 'Erreur lors du chargement des favoris');
       } finally {

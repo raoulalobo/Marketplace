@@ -75,7 +75,6 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('Erreur lors de la récupération du profil:', error);
     return NextResponse.json(
       { error: 'Erreur interne du serveur' },
       { status: 500 }
@@ -146,8 +145,6 @@ export async function PUT(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Erreur lors de la mise à jour du profil:', error);
-
     // Gestion des erreurs de validation Zod
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -199,7 +196,6 @@ export async function DELETE() {
     // avec toutes les données associées (propriétés, favoris, etc.)
 
   } catch (error) {
-    console.error('Erreur lors de la suppression du profil:', error);
     return NextResponse.json(
       { error: 'Erreur interne du serveur' },
       { status: 500 }

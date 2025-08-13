@@ -1,7 +1,6 @@
 // Composant de chargement réutilisable
 'use client';
 
-import React from 'react';
 import { Loader2 } from 'lucide-react';
 
 interface LoadingSpinnerProps {
@@ -18,7 +17,7 @@ const sizeClasses = {
   xl: 'w-12 h-12',
 };
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+export const LoadingSpinner = ({
   size = 'md',
   className = '',
   text,
@@ -52,7 +51,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 };
 
 // Composant de chargement pour les pages complètes
-export const PageLoading: React.FC<{ text?: string }> = ({ 
+export const PageLoading = ({ 
   text = 'Chargement...'
 }) => {
   return (
@@ -67,7 +66,7 @@ export const PageLoading: React.FC<{ text?: string }> = ({
 };
 
 // Composant de chargement pour les cartes
-export const CardLoading: React.FC = () => {
+export const CardLoading = () => {
   return (
     <div className="animate-pulse">
       <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
@@ -78,7 +77,7 @@ export const CardLoading: React.FC = () => {
 };
 
 // Composant de chargement pour les listes
-export const ListLoading: React.FC<{ count?: number }> = ({ count = 3 }) => {
+export const ListLoading = ({ count = 3 }: { count?: number }) => {
   return (
     <div className="space-y-3">
       {Array.from({ length: count }).map((_, index) => (

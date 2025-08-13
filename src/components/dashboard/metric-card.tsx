@@ -1,7 +1,7 @@
 // Composant de carte de métrique avec explications pour agents immobiliers
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, memo } from 'react';
 import { Info, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 interface MetricCardProps {
@@ -105,7 +105,7 @@ export function getRecommendations(metricType: string, performanceLevel: 'good' 
   return recommendations;
 }
 
-export function MetricCard({
+export const MetricCard = memo(function MetricCard({
   title,
   value,
   icon,
@@ -194,7 +194,7 @@ export function MetricCard({
       </div>
     </div>
   );
-}
+});
 
 // Composants spécialisés pour chaque type de métrique
 interface SessionsMetricProps {
@@ -202,7 +202,7 @@ interface SessionsMetricProps {
   className?: string;
 }
 
-export function SessionsMetric({ value, className }: SessionsMetricProps) {
+export const SessionsMetric = memo(function SessionsMetric({ value, className }: SessionsMetricProps) {
   const performanceLevel = getPerformanceLevel('sessions', value);
   const recommendations = getRecommendations('sessions', performanceLevel, value);
   
@@ -218,7 +218,7 @@ export function SessionsMetric({ value, className }: SessionsMetricProps) {
       className={className}
     />
   );
-}
+});
 
 interface TimeMetricProps {
   value: number; // en secondes

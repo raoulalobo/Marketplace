@@ -1,7 +1,7 @@
 // Composant des paramètres de sécurité utilisateur
 'use client';
 
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -91,7 +91,7 @@ export function SecuritySettings({ userId }: SecuritySettingsProps) {
   };
 
   // Effet pour calculer la force du mot de passe
-  React.useEffect(() => {
+  useEffect(() => {
     if (newPassword) {
       calculatePasswordStrength(newPassword);
     } else {
@@ -130,7 +130,6 @@ export function SecuritySettings({ userId }: SecuritySettingsProps) {
       reset();
 
     } catch (error) {
-      console.error('Erreur:', error);
       toast({
         title: 'Erreur',
         description: error instanceof Error ? error.message : 'Une erreur est survenue',

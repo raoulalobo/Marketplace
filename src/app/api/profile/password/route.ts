@@ -93,16 +93,12 @@ export async function PUT(request: NextRequest) {
       }
     });
 
-    // Log de sécurité (optionnel - à implémenter si nécessaire)
-    console.log(`Password changed for user ${user.email} (ID: ${user.id}) at ${new Date().toISOString()}`);
-
     return NextResponse.json({
       success: true,
       message: 'Mot de passe modifié avec succès'
     });
 
   } catch (error) {
-    console.error('Erreur lors du changement de mot de passe:', error);
 
     // Gestion des erreurs de validation Zod
     if (error instanceof z.ZodError) {
@@ -173,7 +169,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Erreur lors de la vérification du mot de passe:', error);
     return NextResponse.json(
       { error: 'Erreur interne du serveur' },
       { status: 500 }

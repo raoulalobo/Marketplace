@@ -35,7 +35,7 @@ interface VisitRequestModalProps {
   isOpen: boolean;
   onClose: () => void;
   property: Property;
-  onSuccess?: (visitRequest: any) => void;
+  onSuccess?: (visitRequest: unknown) => void;
 }
 
 export function VisitRequestModal({ 
@@ -88,7 +88,7 @@ export function VisitRequestModal({
 
     try {
       // Préparer les données pour l'API
-      const requestData: any = {};
+      const requestData: Record<string, unknown> = {};
       
       if (data.message?.trim()) {
         requestData.message = data.message.trim();
@@ -122,7 +122,7 @@ export function VisitRequestModal({
       }
       onClose();
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erreur lors de la demande de visite:', err);
       setError(err.message || 'Une erreur s\'est produite');
     } finally {

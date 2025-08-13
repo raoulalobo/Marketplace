@@ -73,8 +73,6 @@ export async function POST(request: NextRequest) {
     );
     
   } catch (error) {
-    console.error('Erreur lors de l\'inscription:', error);
-    
     // Gestion des erreurs de validation Zod
     if (error && typeof error === 'object' && 'issues' in error) {
       return NextResponse.json(

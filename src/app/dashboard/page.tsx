@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { UserRole } from '@prisma/client';
 
-import { AgentDashboard } from '@/components/dashboard/agent-dashboard';
+import { AgentDashboard } from '@/components/dashboard/agent-dashboard-optimized';
 import { AcheteurDashboard } from '@/components/dashboard/acheteur-dashboard';
 import { AdminDashboard } from '@/components/dashboard/admin-dashboard';
 

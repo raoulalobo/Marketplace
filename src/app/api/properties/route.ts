@@ -187,10 +187,6 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Logs pour diagnostiquer le problème
-    console.log(`[API Debug] Total count: ${total}, Properties returned: ${properties.length}, Limit: ${limit}, Page: ${page}`);
-    if (properties.length !== Math.min(limit, total)) {
-      console.warn(`[API Warning] Discrepancy detected: Expected ${Math.min(limit, total)} properties, got ${properties.length}`);
-    }
 
     return NextResponse.json({
       properties,
@@ -203,8 +199,6 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Erreur lors de la récupération des propriétés:', error);
-    
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Paramètres de recherche invalides', details: error.errors },
@@ -247,8 +241,6 @@ export async function POST(request: NextRequest) {
     const { ville, photos, videos, ...rest } = validatedData;
 
     // Créer la propriété
-    console.log('Validated Data:', validatedData);
-    console.log('Agent ID:', session.user.id);
     const property = await prisma.property.create({
       data: {
         ...rest,
@@ -282,7 +274,6 @@ export async function POST(request: NextRequest) {
         medias: true, // Include medias to confirm they are created
       },
     });
-    console.log('Created Property:', property);
 
     return NextResponse.json(
       { 
@@ -293,7 +284,6 @@ export async function POST(request: NextRequest) {
     );
 
   } catch (error) {
-    console.error('Erreur lors de la création de la propriété:', error);
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(

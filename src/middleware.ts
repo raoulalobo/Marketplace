@@ -7,7 +7,6 @@ export function middleware(request: NextRequest) {
 
   // Redirection permanente de /favorites vers /dashboard/favorites
   if (pathname === '/favorites') {
-    console.log('Redirecting /favorites to /dashboard/favorites');
     return NextResponse.redirect(
       new URL('/dashboard/favorites', request.url),
       301 // Redirection permanente pour SEO
@@ -16,7 +15,6 @@ export function middleware(request: NextRequest) {
 
   // Redirection permanente de /profile vers /dashboard/profile
   if (pathname === '/profile') {
-    console.log('Redirecting /profile to /dashboard/profile');
     return NextResponse.redirect(
       new URL('/dashboard/profile', request.url),
       301 // Redirection permanente pour SEO

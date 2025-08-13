@@ -314,8 +314,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(stats);
 
   } catch (error) {
-    console.error('Erreur lors de la récupération des statistiques agent:', error);
-    
     return NextResponse.json(
       { error: 'Erreur interne du serveur' },
       { status: 500 }

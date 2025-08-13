@@ -161,7 +161,6 @@ export function ProfileEditForm({ user }: ProfileEditFormProps) {
       router.refresh();
 
     } catch (error) {
-      console.error('Erreur:', error);
       toast({
         title: 'Erreur',
         description: error instanceof Error ? error.message : 'Une erreur est survenue',

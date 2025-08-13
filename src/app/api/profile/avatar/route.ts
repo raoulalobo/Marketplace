@@ -46,10 +46,8 @@ async function removeOldAvatar(avatarUrl: string | null) {
     // Vérifier si le fichier existe et le supprimer
     await fs.access(filePath);
     await fs.unlink(filePath);
-    console.log(`Ancien avatar supprimé: ${fileName}`);
   } catch (error) {
     // Ignore les erreurs si le fichier n'existe pas
-    console.warn('Impossible de supprimer l\'ancien avatar:', error);
   }
 }
 
@@ -140,7 +138,7 @@ export async function POST(request: NextRequest) {
 
     // Suppression de l'ancien avatar (asynchrone, ne pas attendre)
     if (currentUser.avatar && currentUser.avatar !== avatarUrl) {
-      removeOldAvatar(currentUser.avatar).catch(console.error);
+      removeOldAvatar(currentUser.avatar).catch(() => {}); // Ignorer les erreurs
     }
 
     return NextResponse.json({
@@ -153,7 +151,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Erreur lors de l\'upload de l\'avatar:', error);
     return NextResponse.json(
       { error: 'Erreur interne du serveur' },
       { status: 500 }
@@ -213,7 +210,7 @@ export async function DELETE() {
     });
 
     // Suppression du fichier (asynchrone)
-    removeOldAvatar(currentUser.avatar).catch(console.error);
+    removeOldAvatar(currentUser.avatar).catch(() => {});
 
     return NextResponse.json({
       success: true,
@@ -224,7 +221,6 @@ export async function DELETE() {
     });
 
   } catch (error) {
-    console.error('Erreur lors de la suppression de l\'avatar:', error);
     return NextResponse.json(
       { error: 'Erreur interne du serveur' },
       { status: 500 }

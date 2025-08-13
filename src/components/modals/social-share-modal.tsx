@@ -102,7 +102,7 @@ interface SocialShareModalProps {
   isOpen: boolean;
   onClose: () => void;
   property: Property;
-  onSuccess?: (result: any) => void;
+  onSuccess?: (result: unknown) => void;
   onError?: (error: string) => void;
 }
 
@@ -583,7 +583,7 @@ export function SocialShareModal({
             {publishResult.data?.postDetails && (
               <div className="space-y-2">
                 <Label className="font-semibold">Détails par plateforme :</Label>
-                {publishResult.data.postDetails.map((post: any, index: number) => (
+                {publishResult.data.postDetails.map((post: unknown, index: number) => (
                   <div key={index} className={`flex items-center gap-3 p-3 rounded-lg ${
                     post.status === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
                   }`}>
