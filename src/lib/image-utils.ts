@@ -65,10 +65,10 @@ export const generateFallbackSequence = (
   }
 
   // Fallback 2: Version CDN (si applicable)
-  if (originalSrc && originalSrc.includes('wasabisys.com')) {
+  if (originalSrc && originalSrc.includes('backblazeb2.com')) {
     fallbacks.push({
       type: 'cdn',
-      src: originalSrc.replace('wasabisys.com', 'cdn.wasabisys.com'),
+      src: originalSrc.replace('backblazeb2.com', 'cdn.backblazeb2.com'),
       priority: 3,
     });
   }

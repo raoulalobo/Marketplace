@@ -62,6 +62,13 @@ interface Property extends EditPropertyFormData {
   };
 }
 
+// Interface pour les nouveaux fichiers à uploader
+interface FileUpload {
+  file: File;
+  preview: string;
+  type: 'image' | 'video';
+}
+
 // Villes camerounaises
 const villes = [
   'Douala', 'Yaoundé', 'Bafoussam', 'Bamenda', 'Garoua',
@@ -89,6 +96,8 @@ export default function EditPropertyPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [newUploadedFiles, setNewUploadedFiles] = useState<FileUpload[]>([]);
+  const [dragOver, setDragOver] = useState(false);
 
   const propertyId = params.id as string;
 
@@ -163,6 +172,7 @@ export default function EditPropertyPage() {
       setError('');
       setSuccess('');
 
+      // 1. Mettre à jour les informations de base de la propriété
       const response = await fetch(`/api/properties/${propertyId}`, {
         method: 'PUT',
         headers: {
@@ -171,20 +181,64 @@ export default function EditPropertyPage() {
         body: JSON.stringify(data)
       });
 
-      if (response.ok) {
-        setSuccess('Propriété mise à jour avec succès !');
-        setTimeout(() => {
-          router.push('/dashboard/properties');
-        }, 2000);
-      } else {
+      if (!response.ok) {
         const errorData = await response.json();
-        setError(errorData.error || 'Erreur lors de la sauvegarde');
+        throw new Error(errorData.error || 'Erreur lors de la sauvegarde');
       }
-    } catch (err) {
+
+      // 2. Uploader les nouveaux fichiers s'il y en a
+      if (newUploadedFiles.length > 0) {
+        setUploadingMedia(true);
+        
+        // Upload vers Backblaze
+        const formData = new FormData();
+        newUploadedFiles.forEach(fileUpload => {
+          formData.append('files', fileUpload.file);
+        });
+
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json();
+          throw new Error(errorData.error || 'Erreur lors de l\'upload des fichiers');
+        }
+
+        const { urls: uploadedUrls } = await uploadResponse.json();
+
+        // Ajouter les médias à la propriété
+        const mediaResponse = await fetch(`/api/properties/${propertyId}/media`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            mediaUrls: uploadedUrls
+          })
+        });
+
+        if (!mediaResponse.ok) {
+          const errorData = await mediaResponse.json();
+          throw new Error(errorData.error || 'Erreur lors de l\'ajout des médias');
+        }
+
+        // Vider les nouveaux fichiers uploadés
+        setNewUploadedFiles([]);
+      }
+
+      setSuccess('Propriété mise à jour avec succès !');
+      setTimeout(() => {
+        router.push('/dashboard/properties');
+      }, 2000);
+
+    } catch (err: any) {
       console.error('Erreur de sauvegarde:', err);
-      setError('Erreur de connexion lors de la sauvegarde');
+      setError(err.message || 'Erreur de connexion lors de la sauvegarde');
     } finally {
       setSaving(false);
+      setUploadingMedia(false);
     }
   };
 
@@ -207,6 +261,70 @@ export default function EditPropertyPage() {
     } catch (err) {
       console.error('Erreur lors de la suppression du média:', err);
     }
+  };
+
+  // Gestion des uploads de nouveaux fichiers
+  const handleFileUpload = (files: FileList | File[]) => {
+    const fileArray = Array.from(files);
+    
+    fileArray.forEach(file => {
+      // Vérifier les types de fichiers
+      const isImage = file.type.startsWith('image/');
+      const isVideo = file.type.startsWith('video/');
+      
+      if (!isImage && !isVideo) return;
+      
+      // Vérifier les limites (5 images + 5 vidéos max au total)
+      const currentImages = [...property?.medias.filter(m => m.type === 'PHOTO') || [], ...newUploadedFiles.filter(f => f.type === 'image')].length;
+      const currentVideos = [...property?.medias.filter(m => m.type === 'VIDEO') || [], ...newUploadedFiles.filter(f => f.type === 'video')].length;
+      
+      if (isImage && currentImages >= 5) {
+        alert('Maximum 5 images autorisées');
+        return;
+      }
+      
+      if (isVideo && currentVideos >= 5) {
+        alert('Maximum 5 vidéos autorisées');
+        return;
+      }
+      
+      // Créer l'aperçu
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const newFile: FileUpload = {
+          file,
+          preview: e.target?.result as string,
+          type: isImage ? 'image' : 'video'
+        };
+        
+        setNewUploadedFiles(prev => [...prev, newFile]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Supprimer un nouveau fichier (pas encore uploadé)
+  const removeNewFile = (index: number) => {
+    setNewUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Gestion du drag & drop
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    
+    const files = e.dataTransfer.files;
+    handleFileUpload(files);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
   };
 
   // Gestion des états de chargement et d'erreur
@@ -636,6 +754,80 @@ export default function EditPropertyPage() {
                 </div>
               )}
 
+              {/* Section: Ajouter de nouvelles photos et vidéos */}
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+                  <Upload className="w-5 h-5 text-blue-600" />
+                  Ajouter des photos et vidéos
+                </h2>
+                
+                {/* Zone de drop */}
+                <div
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                    dragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                  }`}
+                >
+                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600 mb-2">
+                    Glissez-déposez vos fichiers ici ou 
+                    <label className="text-blue-600 cursor-pointer hover:underline ml-1">
+                      cliquez pour sélectionner
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*,video/*"
+                        className="hidden"
+                        onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
+                      />
+                    </label>
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Maximum 5 images et 5 vidéos • Formats: JPG, PNG, MP4, MOV
+                  </p>
+                </div>
+
+                {/* Aperçu des nouveaux fichiers */}
+                {newUploadedFiles.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="font-medium text-gray-900 mb-3">
+                      Nouveaux fichiers sélectionnés ({newUploadedFiles.length})
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {newUploadedFiles.map((file, index) => (
+                        <div key={index} className="relative group">
+                          <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                            {file.type === 'image' ? (
+                              <img
+                                src={file.preview}
+                                alt={`Upload ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Video className="w-8 h-8 text-gray-400" />
+                              </div>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeNewFile(index)}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                          <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+                            {file.type === 'image' ? <ImageIcon className="w-3 h-3" /> : <Video className="w-3 h-3" />}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Actions de sauvegarde */}
               <div className="border-t border-gray-200 pt-8">
                 <div className="flex items-center justify-between">
@@ -655,10 +847,15 @@ export default function EditPropertyPage() {
                     
                     <Button
                       type="submit"
-                      disabled={saving}
+                      disabled={saving || uploadingMedia}
                       className="min-w-32"
                     >
-                      {saving ? (
+                      {uploadingMedia ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Upload médias...
+                        </>
+                      ) : saving ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                           Sauvegarde...
@@ -666,7 +863,7 @@ export default function EditPropertyPage() {
                       ) : (
                         <>
                           <Save className="w-4 h-4 mr-2" />
-                          Sauvegarder
+                          Sauvegarder{newUploadedFiles.length > 0 && ` (+${newUploadedFiles.length} média${newUploadedFiles.length > 1 ? 's' : ''})`}
                         </>
                       )}
                     </Button>

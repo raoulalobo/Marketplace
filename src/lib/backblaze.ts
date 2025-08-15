@@ -1,16 +1,16 @@
-// Configuration et utilitaires pour le stockage Wasabi (S3-compatible)
+// Configuration et utilitaires pour le stockage Backblaze B2 (S3-compatible)
 import { S3Client } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 
-// Configuration du client Wasabi S3
-export const wasabiClient = new S3Client({
-  endpoint: process.env.NEXT_PUBLIC_WASABI_ENDPOINT!,
-  region: process.env.NEXT_PUBLIC_WASABI_REGION!,
+// Configuration du client Backblaze B2 S3-compatible
+export const backblazeClient = new S3Client({
+  endpoint: process.env.BACKBLAZE_ENDPOINT!,
+  region: process.env.BACKBLAZE_REGION!,
   credentials: {
-    accessKeyId: process.env.WASABI_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.WASABI_SECRET_ACCESS_KEY!,
+    accessKeyId: process.env.BACKBLAZE_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.BACKBLAZE_SECRET_ACCESS_KEY!,
   },
-  forcePathStyle: true, // Requis pour Wasabi
+  forcePathStyle: true, // Requis pour Backblaze B2
 });
 
 // Types pour les uploads
@@ -22,13 +22,13 @@ export interface UploadParams {
   mediaType: MediaType;
 }
 
-// Fonction pour uploader un fichier vers Wasabi
-export async function uploadToWasabi({ file, key, mediaType }: UploadParams): Promise<string> {
+// Fonction pour uploader un fichier vers Backblaze B2
+export async function uploadToBackblaze({ file, key, mediaType }: UploadParams): Promise<string> {
   try {
     const upload = new Upload({
-      client: wasabiClient,
+      client: backblazeClient,
       params: {
-        Bucket: process.env.NEXT_PUBLIC_WASABI_BUCKET_NAME!,
+        Bucket: process.env.BACKBLAZE_BUCKET_NAME!,
         Key: key,
         Body: file,
         ContentType: file.type,
@@ -36,21 +36,35 @@ export async function uploadToWasabi({ file, key, mediaType }: UploadParams): Pr
           'media-type': mediaType,
           'uploaded-at': new Date().toISOString(),
         },
-        // Permissions publiques pour affichage
-        ACL: 'public-read',
+        // Note: ACL 'public-read' retiré car non supporté par Backblaze B2
+        // Configurer les permissions via la console Backblaze
       },
     });
 
     const result = await upload.done();
     
     // Retourne l'URL publique du fichier
-    return `${process.env.WASABI_ENDPOINT}/${process.env.WASABI_BUCKET_NAME}/${key}`;
+    return `${process.env.BACKBLAZE_ENDPOINT}/${process.env.BACKBLAZE_BUCKET_NAME}/${key}`;
   } catch (error: any) {
-    console.error('Erreur lors de l\'upload vers Wasabi:', error.message || error);
+    console.error('=== ERREUR BACKBLAZE B2 DÉTAILLÉE ===');
+    console.error('Message:', error.message || error);
+    console.error('Code:', error.code);
+    console.error('Name:', error.name);
     if (error.$metadata) {
-      console.error('Wasabi Error Metadata:', error.$metadata);
+      console.error('Metadata:', JSON.stringify(error.$metadata, null, 2));
     }
-    throw new Error('Impossible d\'uploader le fichier');
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    }
+    console.error('Configuration utilisée:');
+    console.error('- Endpoint:', process.env.BACKBLAZE_ENDPOINT);
+    console.error('- Region:', process.env.BACKBLAZE_REGION);
+    console.error('- Bucket:', process.env.BACKBLAZE_BUCKET_NAME);
+    console.error('- Access Key ID:', process.env.BACKBLAZE_ACCESS_KEY_ID ? 'défini' : 'manquant');
+    console.error('- Secret Key:', process.env.BACKBLAZE_SECRET_ACCESS_KEY ? 'défini' : 'manquant');
+    console.error('=====================================');
+    throw new Error(`Erreur Backblaze B2: ${error.message || 'Erreur inconnue'}`);
   }
 }
 

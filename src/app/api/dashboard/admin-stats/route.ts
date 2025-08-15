@@ -8,7 +8,7 @@ import { UserRole } from '@prisma/client';
 // Forcer le rendu dynamique pour cette route API qui utilise les headers de session
 export const dynamic = 'force-dynamic';
 
-// Interface pour les statistiques admin
+// Interface pour les statistiques admin (sans données fictives)
 interface AdminStats {
   // Vue d'ensemble de la plateforme
   totalUsers: number;
@@ -22,42 +22,57 @@ interface AdminStats {
   pendingProperties: number;
   propertiesAddedThisMonth: number;
   
-  // Activité
+  // Activité réelle
   totalVisitRequests: number;
   pendingVisitRequests: number;
   totalViews: number;
+  totalReports: number;
   
-  // Revenus et finances
-  totalRevenue: number;
-  revenueThisMonth: number;
+  // Métriques réelles (pas de simulation de revenus)
   avgPropertyPrice: number;
   
   // Analytics temporelles
   usersGrowth: Array<{ date: string; users: number }>;
   propertiesGrowth: Array<{ date: string; properties: number }>;
   
-  // Géographie
-  usersByCity: Array<{ city: string; count: number }>;
+  // Géographie réelle
   propertiesByCity: Array<{ city: string; count: number; avgPrice: number }>;
   
   // Types de biens
   propertiesByType: Array<{ type: string; count: number; avgPrice: number }>;
   
-  // Top agents
+  // Top agents (sans revenus fictifs)
   topAgents: Array<{
     id: string;
     name: string;
     propertiesCount: number;
     totalViews: number;
-    revenue: number;
   }>;
   
-  // Activité récente
+  // Activités récentes réelles
   recentActivities: Array<{
     type: 'USER_REGISTERED' | 'PROPERTY_ADDED' | 'VISIT_REQUESTED';
     description: string;
     timestamp: string;
+    userId?: string;
+    propertyId?: string;
   }>;
+
+  // Flags pour indiquer les états vides (pas de données fictives)
+  isEmpty: {
+    users: boolean;
+    properties: boolean;
+    activities: boolean;
+    agents: boolean;
+  };
+  
+  // Messages informatifs pour les cas vides
+  emptyStateMessages: {
+    users?: string;
+    properties?: string;
+    activities?: string;
+    agents?: string;
+  };
 }
 
 // GET /api/dashboard/admin-stats - Récupérer les statistiques admin
@@ -85,7 +100,7 @@ export async function GET(request: NextRequest) {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    // Récupérer les statistiques en parallèle
+    // Récupérer les statistiques réelles en parallèle
     const [
       totalUsers,
       totalAgents,
@@ -96,9 +111,14 @@ export async function GET(request: NextRequest) {
       propertiesAddedThisMonth,
       totalVisitRequests,
       pendingVisitRequests,
+      totalReports,
+      totalViews,
       allProperties,
       allUsers,
-      agentsWithProperties
+      agentsWithProperties,
+      recentUsers,
+      recentProperties,
+      recentVisitRequests
     ] = await Promise.all([
       // Utilisateurs
       prisma.user.count(),
@@ -137,22 +157,23 @@ export async function GET(request: NextRequest) {
         where: { status: 'PENDING' }
       }),
       
-      // Données pour analytics
+      // Signalements
+      prisma.report.count(),
+      
+      // Vues réelles depuis PropertyView
+      prisma.propertyView.count(),
+      
+      // Propriétés pour analytics
       prisma.property.findMany({
         select: {
           prix: true,
           type: true,
           adresse: true,
-          createdAt: true,
-          _count: {
-            select: {
-              favorites: true,
-              visitRequests: true
-            }
-          }
+          createdAt: true
         }
       }),
       
+      // Utilisateurs pour croissance
       prisma.user.findMany({
         select: {
           createdAt: true,
@@ -160,7 +181,7 @@ export async function GET(request: NextRequest) {
         }
       }),
       
-      // Agents avec leurs propriétés
+      // Agents avec leurs propriétés et vraies vues
       prisma.user.findMany({
         where: { role: UserRole.AGENT },
         include: {
@@ -168,6 +189,7 @@ export async function GET(request: NextRequest) {
             include: {
               _count: {
                 select: {
+                  views: true,
                   favorites: true,
                   visitRequests: true
                 }
@@ -175,19 +197,52 @@ export async function GET(request: NextRequest) {
             }
           }
         }
+      }),
+      
+      // Activités récentes réelles - Nouveaux utilisateurs
+      prisma.user.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 3,
+        select: {
+          id: true,
+          prenom: true,
+          nom: true,
+          role: true,
+          createdAt: true
+        }
+      }),
+      
+      // Activités récentes réelles - Nouvelles propriétés
+      prisma.property.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 3,
+        include: {
+          agent: {
+            select: { prenom: true, nom: true }
+          }
+        }
+      }),
+      
+      // Activités récentes réelles - Nouvelles demandes de visite
+      prisma.visitRequest.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 3,
+        include: {
+          property: {
+            select: { id: true, titre: true }
+          },
+          acheteur: {
+            select: { prenom: true, nom: true }
+          }
+        }
       })
     ]);
 
-    // Calculer les métriques dérivées
-    const pendingProperties = 0; // À implémenter selon votre logique
-    const totalViews = allProperties.reduce((sum, prop) => sum + prop._count.favorites * 10, 0);
+    // Calculer les métriques dérivées réelles
+    const pendingProperties = totalProperties - activeProperties;
     const avgPropertyPrice = allProperties.length > 0 
       ? allProperties.reduce((sum, prop) => sum + prop.prix, 0) / allProperties.length
       : 0;
-
-    // Revenus simulés
-    const totalRevenue = totalProperties * 500000; // Commission moyenne
-    const revenueThisMonth = propertiesAddedThisMonth * 500000;
 
     // Croissance des utilisateurs (30 derniers jours)
     const usersGrowth = Array.from({ length: 30 }, (_, i) => {
@@ -215,14 +270,7 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Répartition des utilisateurs par ville (simulé à partir des agents)
-    const usersByCity = [
-      { city: 'Yaoundé', count: Math.floor(totalUsers * 0.4) },
-      { city: 'Douala', count: Math.floor(totalUsers * 0.35) },
-      { city: 'Bafoussam', count: Math.floor(totalUsers * 0.1) },
-      { city: 'Garoua', count: Math.floor(totalUsers * 0.08) },
-      { city: 'Autres', count: Math.floor(totalUsers * 0.07) }
-    ];
+    // Pas de simulation - cette donnée sera supprimée
 
     // Propriétés par ville
     const propertiesByCity = allProperties.reduce((acc, prop) => {
@@ -269,43 +317,80 @@ export async function GET(request: NextRequest) {
       avgPrice: item.totalPrice / item.count
     }));
 
-    // Top agents
+    // Top agents (sans données fictives)
     const topAgents = agentsWithProperties
       .map(agent => {
-        const totalViews = agent.properties.reduce(
-          (sum, prop) => sum + prop._count.favorites * 10, 0
+        const agentTotalViews = agent.properties.reduce(
+          (sum, prop) => sum + prop._count.views, 0
         );
-        const revenue = agent.properties.length * 500000; // Simulé
         
         return {
           id: agent.id,
           name: `${agent.prenom} ${agent.nom}`,
           propertiesCount: agent.properties.length,
-          totalViews,
-          revenue
+          totalViews: agentTotalViews
         };
       })
       .sort((a, b) => b.propertiesCount - a.propertiesCount)
       .slice(0, 5);
 
-    // Activités récentes (simulées)
-    const recentActivities = [
-      {
+    // Activités récentes réelles
+    const recentActivities: Array<{
+      type: 'USER_REGISTERED' | 'PROPERTY_ADDED' | 'VISIT_REQUESTED';
+      description: string;
+      timestamp: string;
+      userId?: string;
+      propertyId?: string;
+    }> = [
+      // Nouveaux utilisateurs
+      ...recentUsers.map(user => ({
         type: 'USER_REGISTERED' as const,
-        description: 'Nouvel acheteur inscrit',
-        timestamp: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString()
-      },
-      {
+        description: `${user.prenom} ${user.nom} s'est inscrit comme ${user.role === 'AGENT' ? 'agent' : 'acheteur'}`,
+        timestamp: user.createdAt.toISOString(),
+        userId: user.id
+      })),
+      // Nouvelles propriétés
+      ...recentProperties.map(property => ({
         type: 'PROPERTY_ADDED' as const,
-        description: 'Nouvelle propriété ajoutée à Yaoundé',
-        timestamp: new Date(now.getTime() - 5 * 60 * 60 * 1000).toISOString()
-      },
-      {
+        description: `${property.agent.prenom} ${property.agent.nom} a ajouté "${property.titre}"`,
+        timestamp: property.createdAt.toISOString(),
+        propertyId: property.id
+      })),
+      // Nouvelles demandes de visite
+      ...recentVisitRequests.map(visit => ({
         type: 'VISIT_REQUESTED' as const,
-        description: 'Demande de visite pour une maison à Douala',
-        timestamp: new Date(now.getTime() - 8 * 60 * 60 * 1000).toISOString()
-      }
-    ];
+        description: `${visit.acheteur.prenom} ${visit.acheteur.nom} demande à visiter "${visit.property.titre}"`,
+        timestamp: visit.createdAt.toISOString(),
+        propertyId: visit.property.id
+      }))
+    ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10);
+
+    // Détection des états vides (pas de données fictives)
+    const isEmpty = {
+      users: totalUsers === 0,
+      properties: totalProperties === 0,
+      activities: recentActivities.length === 0,
+      agents: topAgents.length === 0
+    };
+
+    // Messages pour les états vides
+    const emptyStateMessages: { [key: string]: string } = {};
+    
+    if (isEmpty.users) {
+      emptyStateMessages.users = "Aucun utilisateur inscrit pour le moment. Les statistiques apparaîtront dès les premières inscriptions.";
+    }
+    
+    if (isEmpty.properties) {
+      emptyStateMessages.properties = "Aucune propriété ajoutée pour le moment. Invitez des agents à publier leurs premiers biens.";
+    }
+    
+    if (isEmpty.activities) {
+      emptyStateMessages.activities = "Aucune activité récente. L'activité apparaîtra quand les utilisateurs commenceront à utiliser la plateforme.";
+    }
+    
+    if (isEmpty.agents) {
+      emptyStateMessages.agents = "Aucun agent actif pour le moment. Encouragez l'inscription d'agents immobiliers.";
+    }
 
     const stats: AdminStats = {
       // Vue d'ensemble
@@ -324,20 +409,22 @@ export async function GET(request: NextRequest) {
       totalVisitRequests,
       pendingVisitRequests,
       totalViews,
+      totalReports,
       
-      // Finances
-      totalRevenue,
-      revenueThisMonth,
+      // Métriques réelles
       avgPropertyPrice,
       
       // Analytics
       usersGrowth,
       propertiesGrowth,
-      usersByCity,
       propertiesByCity,
       propertiesByType,
       topAgents,
-      recentActivities
+      recentActivities,
+      
+      // États vides et messages informatifs
+      isEmpty,
+      emptyStateMessages
     };
 
     return NextResponse.json(stats);

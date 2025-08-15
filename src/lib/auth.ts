@@ -44,6 +44,16 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        // Mettre à jour la dernière connexion uniquement lors de l'authentification
+        try {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { lastLoginAt: new Date() }
+          });
+        } catch (error) {
+          console.error('Erreur lors de la mise à jour de lastLoginAt:', error);
+        }
+
         return {
           id: user.id,
           email: user.email,
@@ -72,15 +82,9 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.role = token.role as UserRole;
         
-        // Mettre à jour la dernière connexion pour les recommandations
-        try {
-          await prisma.user.update({
-            where: { id: token.id as string },
-            data: { lastLoginAt: new Date() }
-          });
-        } catch (error) {
-          console.error('Erreur lors de la mise à jour de lastLoginAt:', error);
-        }
+        // Optimisation : Ne pas faire d'appel DB à chaque vérification de session
+        // La mise à jour de lastLoginAt sera faite uniquement lors de la connexion
+        // ou via un endpoint séparé si nécessaire
       }
       return session;
     },

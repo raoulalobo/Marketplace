@@ -10,19 +10,19 @@ interface LoadingSpinnerProps {
   center?: boolean;
 }
 
-const sizeClasses = {
+const sizeClasses: Record<string, string> = {
   sm: 'w-4 h-4',
   md: 'w-6 h-6',
   lg: 'w-8 h-8',
   xl: 'w-12 h-12',
 };
 
-export const LoadingSpinner = ({
+export function LoadingSpinner({
   size = 'md',
   className = '',
   text,
   center = false,
-}) => {
+}: LoadingSpinnerProps) {
   const spinner = (
     <Loader2 
       className={`animate-spin ${sizeClasses[size]} ${className}`} 
@@ -48,12 +48,12 @@ export const LoadingSpinner = ({
       )}
     </div>
   );
-};
+}
 
 // Composant de chargement pour les pages complètes
-export const PageLoading = ({ 
+export function PageLoading({ 
   text = 'Chargement...'
-}) => {
+}: { text?: string }) {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-center min-h-[400px]">
@@ -63,10 +63,10 @@ export const PageLoading = ({
       </div>
     </div>
   );
-};
+}
 
 // Composant de chargement pour les cartes
-export const CardLoading = () => {
+export function CardLoading() {
   return (
     <div className="animate-pulse">
       <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
@@ -74,10 +74,10 @@ export const CardLoading = () => {
       <div className="h-8 bg-gray-200 rounded w-full"></div>
     </div>
   );
-};
+}
 
 // Composant de chargement pour les listes
-export const ListLoading = ({ count = 3 }: { count?: number }) => {
+export function ListLoading({ count = 3 }: { count?: number }) {
   return (
     <div className="space-y-3">
       {Array.from({ length: count }).map((_, index) => (
@@ -93,6 +93,4 @@ export const ListLoading = ({ count = 3 }: { count?: number }) => {
       ))}
     </div>
   );
-};
-
-export default LoadingSpinner;
+}

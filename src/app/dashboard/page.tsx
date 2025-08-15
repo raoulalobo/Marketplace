@@ -6,7 +6,6 @@ import { UserRole } from '@prisma/client';
 
 import { AgentDashboard } from '@/components/dashboard/agent-dashboard-optimized';
 import { AcheteurDashboard } from '@/components/dashboard/acheteur-dashboard';
-import { AdminDashboard } from '@/components/dashboard/admin-dashboard';
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -25,7 +24,8 @@ export default async function DashboardPage() {
       return <AcheteurDashboard user={session.user} />;
     
     case UserRole.ADMIN:
-      return <AdminDashboard user={session.user} />;
+      // Redirection vers le dashboard admin spécialisé
+      redirect('/admin/dashboard');
     
     default:
       return (

@@ -319,9 +319,9 @@ export async function DELETE(
       })
     ]);
 
-    // TODO: Supprimer les fichiers de Wasabi S3
+    // TODO: Supprimer les fichiers de Backblaze B2
     // const filesToDelete = [...existingProperty.photos, ...existingProperty.videos];
-    // await deleteFromWasabi(filesToDelete);
+    // await deleteFromBackblaze(filesToDelete);
 
     return NextResponse.json({
       message: 'Propriété supprimée avec succès'

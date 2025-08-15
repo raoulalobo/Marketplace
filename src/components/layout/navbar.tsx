@@ -1,15 +1,23 @@
 // Barre de navigation principale avec gestion des rôles
 'use client';
 
-import { useSession, signOut } from 'next-auth/react';
+import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { Menu, X, Home, Search, Heart, User, LogIn, LogOut, Settings, Plus } from 'lucide-react';
 import { UserRole } from '@prisma/client';
+import { useAppSession } from '@/contexts/session-context';
 
 export function Navbar() {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useAppSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Protection supplémentaire : ne pas afficher de contenu si la session est en cours de chargement
+  // Cette condition ne devrait jamais être vraie grâce à AuthWrapper,
+  // mais on l'ajoute par sécurité pour éviter tout flash
+  if (status === 'loading') {
+    return null; // ou un petit skeleton si préféré
+  }
 
   // Navigation conditionnelle selon le rôle
   const getNavigationItems = () => {

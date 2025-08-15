@@ -293,7 +293,7 @@
   - [ ] Génération automatique sitemap.xml
   - [ ] Meta tags dynamiques par page propriété
   - [ ] Structured data (JSON-LD) pour référencement
-  - [ ] Preconnect aux domaines externes (Wasabi, Unsplash)
+  - [ ] Preconnect aux domaines externes (Backblaze B2, Unsplash)
   - [ ] Critical CSS inlining
 
 - [ ] **Core Web Vitals Optimization**

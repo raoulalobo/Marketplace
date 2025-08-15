@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   images: {
     domains: [
-      's3.eu-central-2.wasabisys.com',
+      's3.us-east-005.backblazeb2.com',
       'images.unsplash.com',
       'plus.unsplash.com'
     ],
