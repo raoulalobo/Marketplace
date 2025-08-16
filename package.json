@@ -30,6 +30,7 @@
     "clsx": "^2.0.0",
     "dotenv": "^17.2.1",
     "lucide-react": "^0.263.1",
+    "mapbox-gl": "^3.14.0",
     "next": "^15.4.6",
     "next-auth": "^4.24.5",
     "node-fetch": "^3.3.2",
@@ -42,6 +43,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/bcryptjs": "^2.4.6",
+    "@types/mapbox-gl": "^3.4.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

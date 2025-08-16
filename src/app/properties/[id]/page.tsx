@@ -24,6 +24,7 @@ import { SocialShareModal } from '@/components/modals/social-share-modal';
 import { AuthRequiredModal } from '@/components/modals/auth-required-modal';
 import { ToastContainer, useToast } from '@/components/ui/toast';
 import { useFavorite } from '@/hooks/use-favorite';
+import { MapboxMap } from '@/components/ui/mapbox-map';
 
 // Interface pour les propriétés
 interface Property {
@@ -34,6 +35,8 @@ interface Property {
   prix: number;
   superficie: number;
   adresse: string;
+  longitude?: number | null; // Coordonnée longitude (optionnelle)
+  latitude?: number | null; // Coordonnée latitude (optionnelle)
   fraisVisite: number;
   troc: boolean; // Accepte le troc/échange
   payer_apres: boolean; // Accepte le paiement différé
@@ -381,6 +384,23 @@ export default function PropertyDetailPage() {
                 </div>
               )}
             </div>
+
+            {/* Section Carte Mapbox - uniquement si coordonnées GPS disponibles */}
+            {property.longitude && property.latitude && (
+              <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div className="p-4 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-blue-600" />
+                    Localisation
+                  </h3>
+                </div>
+                <MapboxMap 
+                  longitude={property.longitude} 
+                  latitude={property.latitude}
+                  className="h-64 w-full"
+                />
+              </div>
+            )}
 
             {/* Informations détaillées */}
             <div className="bg-white rounded-lg shadow-lg p-6">

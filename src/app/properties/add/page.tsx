@@ -31,6 +31,8 @@ const propertySchema = z.object({
   superficie: z.number().min(10, 'La superficie minimum est de 10 m²'),
   adresse: z.string().min(10, 'L\'adresse doit contenir au moins 10 caractères'),
   ville: z.string().min(1, 'Veuillez sélectionner une ville'),
+  longitude: z.number().min(-180, 'La longitude doit être entre -180 et 180').max(180, 'La longitude doit être entre -180 et 180').optional(), // Coordonnée longitude (optionnelle)
+  latitude: z.number().min(-90, 'La latitude doit être entre -90 et 90').max(90, 'La latitude doit être entre -90 et 90').optional(), // Coordonnée latitude (optionnelle)
   fraisVisite: z.number().min(0, 'Les frais de visite ne peuvent pas être négatifs'),
   troc: z.boolean().optional().default(false), // Accepte le troc/échange
   payer_apres: z.boolean().optional().default(false) // Accepte le paiement différé
@@ -362,6 +364,43 @@ export default function AddPropertyPage() {
                   {errors.adresse && (
                     <p className="text-red-500 text-sm mt-1">{errors.adresse.message}</p>
                   )}
+                </div>
+
+                {/* Coordonnées GPS */}
+                <div>
+                  <Label htmlFor="longitude">Longitude (optionnel)</Label>
+                  <Input
+                    {...register('longitude', { valueAsNumber: true })}
+                    id="longitude"
+                    type="number"
+                    step="any"
+                    placeholder="Ex: 9.70428"
+                    className={errors.longitude ? 'border-red-500' : ''}
+                  />
+                  {errors.longitude && (
+                    <p className="text-red-500 text-sm mt-1">{errors.longitude.message}</p>
+                  )}
+                  <p className="text-gray-500 text-xs mt-1">
+                    Valeur entre -180 et 180 (coordonnée est-ouest)
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="latitude">Latitude (optionnel)</Label>
+                  <Input
+                    {...register('latitude', { valueAsNumber: true })}
+                    id="latitude"
+                    type="number"
+                    step="any"
+                    placeholder="Ex: 4.04827"
+                    className={errors.latitude ? 'border-red-500' : ''}
+                  />
+                  {errors.latitude && (
+                    <p className="text-red-500 text-sm mt-1">{errors.latitude.message}</p>
+                  )}
+                  <p className="text-gray-500 text-xs mt-1">
+                    Valeur entre -90 et 90 (coordonnée nord-sud)
+                  </p>
                 </div>
 
                 {/* Description */}

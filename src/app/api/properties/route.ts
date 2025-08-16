@@ -15,6 +15,8 @@ const createPropertySchema = z.object({
   superficie: z.number().min(10, 'La superficie minimum est de 10 m²'),
   adresse: z.string().min(10, 'L\'adresse doit contenir au moins 10 caractères'),
   ville: z.string().min(1, 'La ville est requise'),
+  longitude: z.number().min(-180, 'La longitude doit être entre -180 et 180').max(180, 'La longitude doit être entre -180 et 180').optional(), // Coordonnée longitude (optionnelle)
+  latitude: z.number().min(-90, 'La latitude doit être entre -90 et 90').max(90, 'La latitude doit être entre -90 et 90').optional(), // Coordonnée latitude (optionnelle)
   fraisVisite: z.number().min(0, 'Les frais de visite ne peuvent pas être négatifs'),
   troc: z.boolean().optional().default(false), // Accepte le troc/échange
   payer_apres: z.boolean().optional().default(false), // Accepte le paiement différé

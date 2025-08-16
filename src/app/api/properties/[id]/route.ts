@@ -14,6 +14,8 @@ const updatePropertySchema = z.object({
   superficie: z.number().min(10).optional(),
   adresse: z.string().min(10).optional(),
   ville: z.string().min(1).optional(),
+  longitude: z.number().min(-180, 'La longitude doit être entre -180 et 180').max(180, 'La longitude doit être entre -180 et 180').optional(), // Coordonnée longitude (optionnelle)
+  latitude: z.number().min(-90, 'La latitude doit être entre -90 et 90').max(90, 'La latitude doit être entre -90 et 90').optional(), // Coordonnée latitude (optionnelle)
   fraisVisite: z.number().min(0).optional(),
   troc: z.boolean().optional(), // Accepte le troc/échange
   payer_apres: z.boolean().optional(), // Accepte le paiement différé

@@ -42,6 +42,8 @@ model Property {
   prix          Int
   superficie    Float?
   adresse       String
+  longitude     Float?                // Coordonnée longitude (optionnelle)
+  latitude      Float?                // Coordonnée latitude (optionnelle)
   fraisVisite   Int?
   isActive      Boolean               @default(true)
   createdAt     DateTime              @default(now())
