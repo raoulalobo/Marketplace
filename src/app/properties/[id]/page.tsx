@@ -10,7 +10,7 @@ import { PropertyImage } from '@/components/ui/property-image';
 import { 
   ArrowLeft, MapPin, Home, Briefcase, Grid, Calendar, 
   Heart, Flag, User, Phone, Mail, Share2, Camera,
-  Ruler, DollarSign, Eye, ArrowLeftRight, Clock
+  Ruler, DollarSign, Eye, ArrowLeftRight, Clock, Play
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -192,10 +192,16 @@ export default function PropertyDetailPage() {
     });
   };
 
-  // Extraire les photos des médias
-  const photos = property.medias
+  // Extraire tous les médias (photos et vidéos)
+  const allMedias = property.medias
+    .sort((a, b) => a.order - b.order);
+  
+  const photos = allMedias
     .filter(media => media.type === 'PHOTO')
-    .sort((a, b) => a.order - b.order)
+    .map(media => media.url);
+    
+  const videos = allMedias
+    .filter(media => media.type === 'VIDEO')
     .map(media => media.url);
 
   // Extraire la ville de l'adresse
@@ -295,35 +301,50 @@ export default function PropertyDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Colonne principale */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Galerie photos */}
+            {/* Galerie médias (photos et vidéos) */}
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
               <div className="relative h-96">
-                {photos.length > 0 ? (
-                  <PropertyImage
-                    src={photos[currentImageIndex]}
-                    alt={property.titre}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 800px"
-                    propertyType={property.type}
-                  />
+                {allMedias.length > 0 ? (
+                  allMedias[currentImageIndex]?.type === 'PHOTO' ? (
+                    <PropertyImage
+                      src={allMedias[currentImageIndex].url}
+                      alt={property.titre}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 800px"
+                      propertyType={property.type}
+                    />
+                  ) : (
+                    <video
+                      src={allMedias[currentImageIndex].url}
+                      controls
+                      className="w-full h-full object-cover"
+                      poster=""
+                    >
+                      Votre navigateur ne supporte pas la lecture vidéo.
+                    </video>
+                  )
                 ) : (
                   <div className="h-full bg-gray-200 flex items-center justify-center">
                     <Camera className="w-16 h-16 text-gray-400" />
                   </div>
                 )}
-                {photos.length > 0 && (
+                {allMedias.length > 0 && (
                   <div className="absolute top-4 left-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
-                    <Camera className="w-4 h-4" />
-                    {currentImageIndex + 1} / {photos.length}
+                    {allMedias[currentImageIndex]?.type === 'PHOTO' ? (
+                      <Camera className="w-4 h-4" />
+                    ) : (
+                      <Play className="w-4 h-4" />
+                    )}
+                    {currentImageIndex + 1} / {allMedias.length}
                   </div>
                 )}
               </div>
               
               {/* Miniatures */}
-              {photos.length > 1 && (
+              {allMedias.length > 1 && (
                 <div className="p-4 flex gap-2 overflow-x-auto">
-                  {photos.map((photo, index) => (
+                  {allMedias.map((media, index) => (
                     <button
                       key={index}
                       onClick={() => {
@@ -333,14 +354,28 @@ export default function PropertyDetailPage() {
                         index === currentImageIndex ? 'border-blue-600' : 'border-gray-200'
                       }`}
                     >
-                      <PropertyImage
-                        src={photo}
-                        alt={`Photo ${index + 1}`}
-                        fill
-                        className="object-cover"
-                        sizes="64px"
-                        propertyType={property.type}
-                      />
+                      {media.type === 'PHOTO' ? (
+                        <PropertyImage
+                          src={media.url}
+                          alt={`Photo ${index + 1}`}
+                          fill
+                          className="object-cover"
+                          sizes="64px"
+                          propertyType={property.type}
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                          <Play className="w-6 h-6 text-white" />
+                        </div>
+                      )}
+                      {/* Indicateur du type de média */}
+                      <div className="absolute bottom-1 right-1 bg-black/70 rounded-full p-1">
+                        {media.type === 'PHOTO' ? (
+                          <Camera className="w-3 h-3 text-white" />
+                        ) : (
+                          <Play className="w-3 h-3 text-white" />
+                        )}
+                      </div>
                     </button>
                   ))}
                 </div>
