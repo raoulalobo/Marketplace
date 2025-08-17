@@ -3,7 +3,6 @@
 
 import { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
 
 // Interface pour les props du composant
 interface MapboxMapProps {
@@ -16,6 +15,7 @@ interface MapboxMapProps {
 if (typeof window !== 'undefined') {
   mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || '';
 }
+
 
 export function MapboxMap({ longitude, latitude, className = '' }: MapboxMapProps) {
   // Référence au conteneur de la carte
@@ -32,7 +32,7 @@ export function MapboxMap({ longitude, latitude, className = '' }: MapboxMapProp
     // Initialiser la carte
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12', // Style de carte moderne
+      style: 'mapbox://styles/mapbox/streets-v12', // Style stable et moderne
       center: [longitude, latitude], // Centrer sur les coordonnées de la propriété
       zoom: 15, // Niveau de zoom approprié pour une propriété
       attributionControl: false // Masquer les attributions pour un affichage plus propre
@@ -47,6 +47,9 @@ export function MapboxMap({ longitude, latitude, className = '' }: MapboxMapProp
 
     // Ajouter les contrôles de navigation (zoom/rotation)
     map.current.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+
+    // Ajouter le contrôle plein écran
+    map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
 
     // Fonction de nettoyage
     return () => {

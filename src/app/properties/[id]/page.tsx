@@ -388,12 +388,6 @@ export default function PropertyDetailPage() {
             {/* Section Carte Mapbox - uniquement si coordonnées GPS disponibles */}
             {property.longitude && property.latitude && (
               <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                <div className="p-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-blue-600" />
-                    Localisation
-                  </h3>
-                </div>
                 <MapboxMap 
                   longitude={property.longitude} 
                   latitude={property.latitude}
